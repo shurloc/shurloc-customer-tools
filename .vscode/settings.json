@@ -1,0 +1,8 @@
+{
+    "[php]": {
+        "editor.defaultFormatter": "valeryanm.vscode-phpsab",
+        "editor.formatOnSave": true
+    },
+    "phpsab.standard": "./phpcs.xml.dist",
+    "files.eol": "\n"
+}
