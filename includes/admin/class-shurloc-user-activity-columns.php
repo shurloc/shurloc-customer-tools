@@ -37,18 +37,18 @@ final class Shurloc_User_Activity_Columns {
 	 *
 	 * @var Shurloc_Activity_Time_Formatter
 	 */
-	private Shurloc_Activity_Time_Formatter $formatter;
+	private Shurloc_Activity_Time_Formatter $time_formatter;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Shurloc_Activity_Time_Formatter $formatter Activity time formatter.
+	 * @param Shurloc_Activity_Time_Formatter $time_formatter Activity time formatter.
 	 */
 	public function __construct(
-		Shurloc_Activity_Time_Formatter $formatter
+		Shurloc_Activity_Time_Formatter $time_formatter
 	) {
 
-		$this->formatter = $formatter;
+		$this->formatter = $time_formatter;
 	}
 
 	/**
@@ -187,7 +187,7 @@ final class Shurloc_User_Activity_Columns {
 		}
 
 		return esc_html(
-			$this->formatter->format( $timestamp )
+			$this->time_formatter->format( $timestamp )
 		);
 	}
 }
