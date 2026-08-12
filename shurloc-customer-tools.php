@@ -14,6 +14,8 @@
  * @package ShurlocCustomerTools
  */
 
+namespace Shurloc\CustomerTools;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }

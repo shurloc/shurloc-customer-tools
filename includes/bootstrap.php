@@ -7,6 +7,8 @@
 
 declare( strict_types=1 );
 
+namespace Shurloc\CustomerTools;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -26,9 +28,17 @@ function shurloc_customer_tools_bootstrap(): void {
 	);
 
 	$autoloader->register();
+
+	$customer_page = new Shurloc_Admin_Page_Controller();
+
+	$admin_page = new Shurloc_Admin_Menu(
+		customer_page: $customer_page
+	);
+
+	$admin_page->register();
 }
 
 add_action(
 	'plugins_loaded',
-	'shurloc_customer_tools_bootstrap'
+	__NAMESPACE__ . '\\shurloc_customer_tools_bootstrap'
 );
