@@ -32,7 +32,7 @@ final class Shurloc_Admin_Menu {
 	/**
 	 * Customer menu position.
 	 */
-	private const CUSTOMER_MENU_POSITION = 20;
+	private const CUSTOMER_MENU_POSITION = 30;
 
 	/**
 	 * Customer page.
@@ -62,7 +62,7 @@ final class Shurloc_Admin_Menu {
 		add_action(
 			'admin_menu',
 			array( $this, 'register_menu' ),
-			20
+			self::CUSTOMER_MENU_POSITION
 		);
 
 		add_action(
