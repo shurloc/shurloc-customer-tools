@@ -40,5 +40,6 @@ function shurloc_customer_tools_bootstrap(): void {
 
 add_action(
 	'plugins_loaded',
-	__NAMESPACE__ . '\\shurloc_customer_tools_bootstrap'
+	__NAMESPACE__ . '\\shurloc_customer_tools_bootstrap',
+	20
 );

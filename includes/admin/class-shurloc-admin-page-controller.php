@@ -11,10 +11,12 @@ declare( strict_types=1 );
 
 namespace Shurloc\CustomerTools;
 
+use Shurloc\Tools\Shurloc_Admin_Page_Interface;
+
 /**
  * Customer admin page controller.
  */
-final class Shurloc_Admin_Page_Controller implements \Shurloc_Admin_Page_Interface {
+final class Shurloc_Admin_Page_Controller implements Shurloc_Admin_Page_Interface {
 
 
 	/**
