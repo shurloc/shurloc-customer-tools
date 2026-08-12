@@ -14,17 +14,11 @@
  * @package ShurlocCustomerTools
  */
 
+namespace Shurloc\CustomerTools;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 require_once __DIR__ . '/includes/constants.php';
 require_once __DIR__ . '/includes/bootstrap.php';
-
-$customer_page = new Shurloc_Customer_Tools_Page_Controller();
-
-$admin_page = new Shurloc_Customer_Tools_Admin_Menu(
-	customer_page: $customer_page
-);
-
-$admin_page->register();

@@ -9,6 +9,8 @@
 
 declare( strict_types=1 );
 
+namespace Shurloc\CustomerTools;
+
 /**
  * ShurLoc autoloader.
  */
@@ -25,14 +27,14 @@ final class Shurloc_Autoloader {
 	 * Constructor.
 	 *
 	 * @param string $base_directory Base includes directory.
-	 * @throws UnexpectedValueException When the base directory does not exist.
+	 * @throws \UnexpectedValueException When the base directory does not exist.
 	 */
 	public function __construct(
 		string $base_directory
 	) {
 
 		if ( ! is_dir( $base_directory ) ) {
-			throw new UnexpectedValueException(
+			throw new \UnexpectedValueException(
 				'Autoloader directory does not exist.'
 			);
 		}
@@ -66,6 +68,22 @@ final class Shurloc_Autoloader {
 	public function load(
 		string $class_name
 	): void {
+
+		$namespace = __NAMESPACE__ . '\\';
+
+		if (
+			0 !== strpos(
+				$class_name,
+				$namespace
+			)
+		) {
+			return;
+		}
+
+		$class_name = substr(
+			$class_name,
+			strlen( $namespace )
+		);
 
 		if (
 			0 !== strpos(
@@ -169,12 +187,12 @@ final class Shurloc_Autoloader {
 			$directory,
 		);
 
-		$iterator = new RecursiveIteratorIterator(
-			new RecursiveDirectoryIterator(
+		$iterator = new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator(
 				$directory,
-				RecursiveDirectoryIterator::SKIP_DOTS
+				\RecursiveDirectoryIterator::SKIP_DOTS
 			),
-			RecursiveIteratorIterator::SELF_FIRST
+			\RecursiveIteratorIterator::SELF_FIRST
 		);
 
 		foreach ( $iterator as $item ) {
