@@ -36,8 +36,6 @@ $GLOBALS['shurloc_test_user_meta'] = array();
  * Test timestamp.
  *
  * Used by namespaced time() doubles in service tests.
- *
- * @var int
  */
 $GLOBALS['shurloc_test_time'] = 0;
 
@@ -185,7 +183,7 @@ if ( ! function_exists( 'update_user_meta' ) ) {
 	 * @param int    $user_id User ID.
 	 * @param string $key     Metadata key.
 	 * @param mixed  $value   Metadata value.
-	 * @return int|bool
+	 * @return bool
 	 */
 	function update_user_meta(
 		int $user_id,
