@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.1] - 2026-08-12
+
+### Changed
+
+- Adapted plugin to `shurloc-tools` new namespace, `Shurloc\Tools`.
+
 ## [0.1.0] - 2026-08-12
 
 ### Added
