@@ -9,6 +9,8 @@ declare( strict_types=1 );
 
 namespace Shurloc\CustomerTools;
 
+use Shurloc\Tools\Shurloc_Admin_Page_Interface;
+
 /**
  * Registers Customer Tools admin UI.
  */
@@ -37,17 +39,17 @@ final class Shurloc_Admin_Menu {
 	/**
 	 * Customer page.
 	 *
-	 * @var \Shurloc_Admin_Page_Interface
+	 * @var Shurloc_Admin_Page_Interface
 	 */
-	private \Shurloc_Admin_Page_Interface $customer_page;
+	private Shurloc_Admin_Page_Interface $customer_page;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param \Shurloc_Admin_Page_Interface $customer_page Customer page.
+	 * @param Shurloc_Admin_Page_Interface $customer_page Customer page.
 	 */
 	public function __construct(
-		\Shurloc_Admin_Page_Interface $customer_page
+		Shurloc_Admin_Page_Interface $customer_page
 	) {
 		$this->customer_page = $customer_page;
 	}
