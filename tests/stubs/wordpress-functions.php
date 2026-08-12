@@ -196,3 +196,96 @@ if ( ! function_exists( 'update_user_meta' ) ) {
 		return true;
 	}
 }
+
+
+if ( ! function_exists( '__' ) ) {
+
+	/**
+	 * Return translated text unchanged.
+	 *
+	 * @param string $text   Text.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function __(
+		string $text,
+		string $domain = 'default'
+	): string {
+
+		unset( $domain );
+
+		return $text;
+	}
+}
+
+
+if ( ! function_exists( '_n' ) ) {
+
+	/**
+	 * Return singular or plural test text.
+	 *
+	 * @param string $single Singular text.
+	 * @param string $plural Plural text.
+	 * @param int    $number Number.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function _n(
+		string $single,
+		string $plural,
+		int $number,
+		string $domain = 'default'
+	): string {
+
+		unset( $domain );
+
+		return 1 === $number
+			? $single
+			: $plural;
+	}
+}
+
+
+if ( ! function_exists( 'get_option' ) ) {
+
+	/**
+	 * Get a test option.
+	 *
+	 * @param string $option         Option name.
+	 * @param mixed  $default_return Default value.
+	 * @return mixed
+	 */
+	function get_option(
+		string $option,
+		$default_return = false
+	) {
+
+		if ( 'date_format' === $option ) {
+			return 'F j, Y';
+		}
+
+		return $default_return;
+	}
+}
+
+
+if ( ! function_exists( 'wp_date' ) ) {
+
+	/**
+	 * Format a test timestamp.
+	 *
+	 * @param string $format    Date format.
+	 * @param int    $timestamp Unix timestamp.
+	 * @return string
+	 */
+	function wp_date(
+		string $format,
+		int $timestamp
+	): string {
+
+		return gmdate(
+			$format,
+			$timestamp
+		);
+	}
+}

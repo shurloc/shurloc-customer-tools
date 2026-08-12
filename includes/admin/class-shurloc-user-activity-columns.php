@@ -48,7 +48,7 @@ final class Shurloc_User_Activity_Columns {
 		Shurloc_Activity_Time_Formatter $time_formatter
 	) {
 
-		$this->formatter = $time_formatter;
+		$this->time_formatter = $time_formatter;
 	}
 
 	/**
