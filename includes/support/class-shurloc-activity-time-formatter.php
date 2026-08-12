@@ -124,9 +124,11 @@ final class Shurloc_Activity_Time_Formatter {
 			);
 		}
 
-		return wp_date(
+		$time_string = wp_date(
 			get_option( 'date_format' ),
 			$timestamp
 		);
+
+		return ( false === $time_string ) ? '' : $time_string;
 	}
 }
