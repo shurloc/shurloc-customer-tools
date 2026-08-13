@@ -44,6 +44,26 @@ $GLOBALS['shurloc_test_time'] = 0;
  */
 $GLOBALS['shurloc_test_filters'] = array();
 
+/**
+ * Test permalinks indexed by post ID.
+ */
+$GLOBALS['shurloc_test_permalinks'] = array();
+
+/**
+ * Enqueued test styles.
+ */
+$GLOBALS['shurloc_test_enqueued_styles'] = array();
+
+/**
+ * Enqueued test scripts.
+ */
+$GLOBALS['shurloc_test_enqueued_scripts'] = array();
+
+/**
+ * Registered test filter metadata.
+ */
+$GLOBALS['shurloc_test_filter_metadata'] = array();
+
 
 if ( ! function_exists( 'add_action' ) ) {
 
@@ -679,5 +699,257 @@ if ( ! function_exists( 'esc_html__' ) ) {
 		unset( $domain );
 
 		return esc_html( $text );
+	}
+}
+
+
+/**
+ * Delete user metadata.
+ *
+ * Test replacement for delete_user_meta().
+ *
+ * @param int    $user_id  User ID.
+ * @param string $meta_key Metadata key.
+ * @return bool
+ */
+function delete_user_meta(
+	int $user_id,
+	string $meta_key
+): bool {
+
+	if (
+		! isset( $GLOBALS['shurloc_test_user_meta'][ $user_id ] ) ||
+		! is_array( $GLOBALS['shurloc_test_user_meta'][ $user_id ] )
+	) {
+		return false;
+	}
+
+	if (
+		! array_key_exists(
+			$meta_key,
+			$GLOBALS['shurloc_test_user_meta'][ $user_id ]
+		)
+	) {
+		return false;
+	}
+
+	unset(
+		$GLOBALS['shurloc_test_user_meta'][ $user_id ][ $meta_key ]
+	);
+
+	if (
+		empty(
+			$GLOBALS['shurloc_test_user_meta'][ $user_id ]
+		)
+	) {
+		unset(
+			$GLOBALS['shurloc_test_user_meta'][ $user_id ]
+		);
+	}
+
+	return true;
+}
+
+
+if ( ! function_exists( 'esc_attr__' ) ) {
+
+	/**
+	 * Translate and escape an HTML attribute.
+	 *
+	 * Test replacement for esc_attr__().
+	 *
+	 * @param string $text   Text.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function esc_attr__(
+		string $text,
+		string $domain = 'default'
+	): string {
+
+		unset( $domain );
+
+		return esc_attr( $text );
+	}
+}
+
+
+if ( ! function_exists( 'wp_kses_post' ) ) {
+
+	/**
+	 * Sanitize HTML using the allowed post HTML rules.
+	 *
+	 * Test replacement for wp_kses_post().
+	 *
+	 * @param string $data HTML.
+	 * @return string
+	 */
+	function wp_kses_post(
+		string $data
+	): string {
+
+		return $data;
+	}
+}
+
+
+if ( ! function_exists( 'get_permalink' ) ) {
+
+	/**
+	 * Get a test permalink.
+	 *
+	 * Test replacement for get_permalink().
+	 *
+	 * @param int $post_id Post ID.
+	 * @return string|false
+	 */
+	function get_permalink(
+		int $post_id
+	): string|false {
+
+		if (
+			! isset(
+				$GLOBALS['shurloc_test_permalinks'][ $post_id ]
+			)
+		) {
+			return false;
+		}
+
+		$permalink =
+			$GLOBALS['shurloc_test_permalinks'][ $post_id ];
+
+		return is_string( $permalink )
+			? $permalink
+			: false;
+	}
+}
+
+
+if ( ! function_exists( 'wp_enqueue_style' ) ) {
+
+	/**
+	 * Enqueue a test stylesheet.
+	 *
+	 * Test replacement for wp_enqueue_style().
+	 *
+	 * @param string   $handle Style handle.
+	 * @param string   $src    Stylesheet URL.
+	 * @param string[] $deps   Dependencies.
+	 * @param string   $ver    Version.
+	 * @param string   $media  Media type.
+	 * @return void
+	 */
+	function wp_enqueue_style(
+		string $handle,
+		string $src = '',
+		array $deps = array(),
+		string $ver = '',
+		string $media = 'all'
+	): void {
+
+		$GLOBALS['shurloc_test_enqueued_styles'][] = array(
+			'handle' => $handle,
+			'src'    => $src,
+			'deps'   => $deps,
+			'ver'    => $ver,
+			'media'  => $media,
+		);
+	}
+}
+
+
+if ( ! function_exists( 'wp_enqueue_script' ) ) {
+
+	/**
+	 * Enqueue a test script.
+	 *
+	 * Test replacement for wp_enqueue_script().
+	 *
+	 * @param string   $handle    Script handle.
+	 * @param string   $src       Script URL.
+	 * @param string[] $deps      Dependencies.
+	 * @param string   $ver       Version.
+	 * @param bool     $in_footer Whether to enqueue in the footer.
+	 * @return void
+	 */
+	function wp_enqueue_script(
+		string $handle,
+		string $src = '',
+		array $deps = array(),
+		string $ver = '',
+		bool $in_footer = false
+	): void {
+
+		$GLOBALS['shurloc_test_enqueued_scripts'][] = array(
+			'handle'    => $handle,
+			'src'       => $src,
+			'deps'      => $deps,
+			'ver'       => $ver,
+			'in_footer' => $in_footer,
+		);
+	}
+}
+
+
+if ( ! function_exists( 'plugin_dir_path' ) ) {
+
+	/**
+	 * Get the filesystem directory path for a plugin file.
+	 *
+	 * Test replacement for plugin_dir_path().
+	 *
+	 * @param string $file Plugin file path.
+	 * @return string
+	 */
+	function plugin_dir_path(
+		string $file
+	): string {
+
+		return trailingslashit(
+			dirname( $file )
+		);
+	}
+}
+
+
+if ( ! function_exists( 'plugin_dir_url' ) ) {
+
+	/**
+	 * Get the URL for a plugin file's directory.
+	 *
+	 * Test replacement for plugin_dir_url().
+	 *
+	 * @param string $file Plugin file path.
+	 * @return string
+	 */
+	function plugin_dir_url(
+		string $file
+	): string {
+
+		unset( $file );
+
+		return 'https://example.com/wp-content/plugins/shurloc-customer-tools/';
+	}
+}
+
+
+if ( ! function_exists( 'trailingslashit' ) ) {
+
+	/**
+	 * Add a trailing slash to a string.
+	 *
+	 * Test replacement for trailingslashit().
+	 *
+	 * @param string $value Value.
+	 * @return string
+	 */
+	function trailingslashit(
+		string $value
+	): string {
+
+		return rtrim(
+			$value,
+			'/\\'
+		) . '/';
 	}
 }

@@ -98,6 +98,19 @@ if ( ! class_exists( 'WC_Order' ) ) {
 		}
 
 		/**
+		 * Get the customer user ID.
+		 *
+		 * WooCommerce exposes get_user_id() as an alias-style accessor for the
+		 * registered customer associated with the order.
+		 *
+		 * @return int
+		 */
+		public function get_user_id(): int {
+
+			return $this->customer_id;
+		}
+
+		/**
 		 * Set the order status.
 		 *
 		 * @param string $status Order status.
