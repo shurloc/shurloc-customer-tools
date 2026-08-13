@@ -10,6 +10,7 @@ declare( strict_types=1 );
 namespace Shurloc\CustomerTools;
 
 use PHPUnit\Framework\TestCase;
+use WC_Order;
 use WC_Product;
 use WooCommerce;
 
@@ -17,6 +18,13 @@ use WooCommerce;
  * Tests the user cart service.
  */
 final class ShurlocUserCartServiceTest extends TestCase {
+
+	/**
+	 * Number of seconds in one day.
+	 *
+	 * @var int
+	 */
+	private const DAY_IN_SECONDS = 86400;
 
 	/**
 	 * Service under test.
@@ -47,6 +55,7 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$GLOBALS['shurloc_test_current_user_id']   = 0;
 		$GLOBALS['shurloc_test_is_user_logged_in'] = false;
 		$GLOBALS['shurloc_test_time']              = 1_000_000;
+		$GLOBALS['shurloc_test_orders']            = array();
 
 		$this->cart = new Shurloc_WC_Cart_Double();
 
@@ -71,41 +80,71 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$GLOBALS['shurloc_test_current_user_id']   = 0;
 		$GLOBALS['shurloc_test_is_user_logged_in'] = false;
 		$GLOBALS['shurloc_test_woocommerce']       = null;
+		$GLOBALS['shurloc_test_orders']            = array();
 
 		parent::tearDown();
 	}
 
 	/**
-	 * Verify cart hooks are registered.
+	 * Verify the cart totals hook is registered.
 	 *
 	 * @return void
 	 */
-	public function test_register_adds_cart_hooks(): void {
+	public function test_register_adds_after_calculate_totals_hook(): void {
 
 		$this->service->register();
 
-		foreach (
+		self::assertContains(
 			array(
-				'woocommerce_add_to_cart',
-				'woocommerce_cart_item_removed',
-				'woocommerce_cart_item_restored',
-				'woocommerce_after_cart_item_quantity_update',
-				'woocommerce_cart_emptied',
-			) as $hook
-		) {
-			self::assertContains(
-				array(
-					$this->service,
-					'capture_cart',
-				),
-				$GLOBALS['shurloc_test_actions'][ $hook ]
-			);
+				$this->service,
+				'update_cart_snapshot',
+			),
+			$GLOBALS['shurloc_test_actions']
+				['woocommerce_after_calculate_totals']
+		);
 
-			self::assertSame(
-				20,
-				$GLOBALS['shurloc_test_action_metadata'][ $hook ][0]['priority']
-			);
-		}
+		self::assertSame(
+			10,
+			$GLOBALS['shurloc_test_action_metadata']
+				['woocommerce_after_calculate_totals'][0]['priority']
+		);
+
+		self::assertSame(
+			1,
+			$GLOBALS['shurloc_test_action_metadata']
+				['woocommerce_after_calculate_totals'][0]['accepted_args']
+		);
+	}
+
+	/**
+	 * Verify the checkout hook is registered.
+	 *
+	 * @return void
+	 */
+	public function test_register_adds_checkout_order_processed_hook(): void {
+
+		$this->service->register();
+
+		self::assertContains(
+			array(
+				$this->service,
+				'clear_cart_snapshot_after_purchase',
+			),
+			$GLOBALS['shurloc_test_actions']
+				['woocommerce_checkout_order_processed']
+		);
+
+		self::assertSame(
+			10,
+			$GLOBALS['shurloc_test_action_metadata']
+				['woocommerce_checkout_order_processed'][0]['priority']
+		);
+
+		self::assertSame(
+			1,
+			$GLOBALS['shurloc_test_action_metadata']
+				['woocommerce_checkout_order_processed'][0]['accepted_args']
+		);
 	}
 
 	/**
@@ -118,7 +157,9 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$GLOBALS['shurloc_test_is_user_logged_in'] = false;
 		$GLOBALS['shurloc_test_current_user_id']   = 101;
 
-		$this->service->capture_cart();
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
 		self::assertSame(
 			array(),
@@ -136,7 +177,9 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$GLOBALS['shurloc_test_is_user_logged_in'] = true;
 		$GLOBALS['shurloc_test_current_user_id']   = 0;
 
-		$this->service->capture_cart();
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
 		self::assertSame(
 			array(),
@@ -145,7 +188,7 @@ final class ShurlocUserCartServiceTest extends TestCase {
 	}
 
 	/**
-	 * Verify a cart snapshot is stored.
+	 * Verify a complete cart snapshot is stored using the legacy contract.
 	 *
 	 * @return void
 	 */
@@ -161,32 +204,20 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$this->cart->set_test_cart(
 			array(
 				'abc123' => array(
-					'product_id'   => 100,
-					'variation_id' => 105,
-					'quantity'     => 2,
-					'data'         => $product,
+					'product_id'    => 100,
+					'variation_id'  => 105,
+					'quantity'      => 2,
+					'line_subtotal' => 160.00,
+					'line_total'    => 149.95,
+					'data'          => $product,
 				),
 			)
 		);
 
-		$this->cart->set_test_total( 149.95 );
+		$this->cart->set_test_cart_contents_total( 149.95 );
 
-		$this->service->capture_cart();
-
-		self::assertSame(
-			array(
-				array(
-					'product_id'   => 100,
-					'variation_id' => 105,
-					'qty'          => 2,
-					'sku'          => 'TEST-123',
-					'name'         => 'Test Product',
-					'key'          => 'abc123',
-					'variation'    => array(),
-				),
-			),
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
+		$this->service->update_cart_snapshot(
+			$this->cart
 		);
 
 		self::assertSame(
@@ -202,9 +233,21 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		);
 
 		self::assertSame(
-			1,
+			array(
+				array(
+					'cart_item_key' => 'abc123',
+					'product_id'    => 100,
+					'variation_id'  => 105,
+					'name'          => 'Test Product',
+					'sku'           => 'TEST-123',
+					'quantity'      => 2,
+					'line_subtotal' => 160.00,
+					'line_total'    => 149.95,
+					'variation'     => array(),
+				),
+			),
 			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ]
+				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
 		);
 
 		self::assertSame(
@@ -212,100 +255,67 @@ final class ShurlocUserCartServiceTest extends TestCase {
 			$GLOBALS['shurloc_test_user_meta'][101]
 				[ Shurloc_User_Cart_Service::CART_UPDATED_META_KEY ]
 		);
+
+		self::assertSame(
+			1,
+			$GLOBALS['shurloc_test_user_meta'][101]
+				[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ]
+		);
+
+		self::assertSame(
+			1_000_000 + ( 30 * self::DAY_IN_SECONDS ),
+			$GLOBALS['shurloc_test_user_meta'][101]
+				[ Shurloc_User_Cart_Service::CART_EXPIRES_META_KEY ]
+		);
 	}
 
 	/**
-	 * Verify variation attributes are preserved.
+	 * Verify the snapshot version remains the schema version.
 	 *
 	 * @return void
 	 */
-	public function test_variation_attributes_are_stored(): void {
+	public function test_snapshot_version_does_not_increment(): void {
 
 		$this->log_in_user( 101 );
 
+		$GLOBALS['shurloc_test_user_meta'][101]
+			[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ] = 99;
+
 		$product = $this->create_product(
-			sku: 'VAR-123',
-			name: 'Variation Product',
+			sku: 'TEST',
+			name: 'Test Product',
 		);
 
 		$this->cart->set_test_cart(
 			array(
-				'variation-key' => array(
-					'product_id'   => 100,
-					'variation_id' => 105,
-					'quantity'     => 1,
-					'data'         => $product,
-					'variation'    => array(
-						'attribute_pa_color' => 'yellow',
-						'attribute_size'     => 'large',
-					),
+				'abc123' => array(
+					'product_id'    => 100,
+					'variation_id'  => 0,
+					'quantity'      => 1,
+					'line_subtotal' => 25.00,
+					'line_total'    => 25.00,
+					'data'          => $product,
 				),
 			)
 		);
 
-		$this->service->capture_cart();
-
-		$items = $GLOBALS['shurloc_test_user_meta'][101]
-			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
 		self::assertSame(
-			array(
-				'attribute_pa_color' => 'yellow',
-				'attribute_size'     => 'large',
-			),
-			$items[0]['variation']
+			1,
+			$GLOBALS['shurloc_test_user_meta'][101]
+				[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ]
 		);
 	}
 
 	/**
-	 * Verify invalid variation attributes are ignored.
+	 * Verify multiple cart quantities are combined for the item count.
 	 *
 	 * @return void
 	 */
-	public function test_invalid_variation_attributes_are_ignored(): void {
-
-		$this->log_in_user( 101 );
-
-		$product = $this->create_product(
-			sku: 'VAR-123',
-			name: 'Variation Product',
-		);
-
-		$this->cart->set_test_cart(
-			array(
-				'variation-key' => array(
-					'product_id'   => 100,
-					'variation_id' => 105,
-					'quantity'     => 1,
-					'data'         => $product,
-					'variation'    => array(
-						'attribute_pa_color' => 'yellow',
-						'attribute_size'     => array( 'invalid' ),
-						123                  => 'invalid',
-					),
-				),
-			)
-		);
-
-		$this->service->capture_cart();
-
-		$items = $GLOBALS['shurloc_test_user_meta'][101]
-			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
-
-		self::assertSame(
-			array(
-				'attribute_pa_color' => 'yellow',
-			),
-			$items[0]['variation']
-		);
-	}
-
-	/**
-	 * Verify multiple cart lines are normalized.
-	 *
-	 * @return void
-	 */
-	public function test_multiple_cart_items_are_stored(): void {
+	public function test_multiple_cart_quantities_are_summed(): void {
 
 		$this->log_in_user( 101 );
 
@@ -322,284 +332,175 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$this->cart->set_test_cart(
 			array(
 				'first'  => array(
-					'product_id'   => 100,
-					'variation_id' => 0,
-					'quantity'     => 1,
-					'data'         => $product_one,
+					'product_id'    => 100,
+					'variation_id'  => 0,
+					'quantity'      => 1,
+					'line_subtotal' => 10.00,
+					'line_total'    => 10.00,
+					'data'          => $product_one,
 				),
 				'second' => array(
-					'product_id'   => 200,
-					'variation_id' => 205,
-					'quantity'     => 3,
-					'data'         => $product_two,
+					'product_id'    => 200,
+					'variation_id'  => 0,
+					'quantity'      => 3,
+					'line_subtotal' => 60.00,
+					'line_total'    => 60.00,
+					'data'          => $product_two,
 				),
 			)
 		);
 
-		$this->service->capture_cart();
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
+
+		self::assertSame(
+			4,
+			$GLOBALS['shurloc_test_user_meta'][101]
+				[ Shurloc_User_Cart_Service::CART_COUNT_META_KEY ]
+		);
+	}
+
+	/**
+	 * Verify cart contents total is stored.
+	 *
+	 * @return void
+	 */
+	public function test_cart_contents_total_is_stored(): void {
+
+		$this->log_in_user( 101 );
+
+		$product = $this->create_product(
+			sku: 'TEST',
+			name: 'Test Product',
+		);
+
+		$this->cart->set_test_cart(
+			array(
+				'abc123' => array(
+					'product_id'    => 100,
+					'variation_id'  => 0,
+					'quantity'      => 1,
+					'line_subtotal' => 125.00,
+					'line_total'    => 100.00,
+					'data'          => $product,
+				),
+			)
+		);
+
+		$this->cart->set_test_cart_contents_total( 100.00 );
+
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
+
+		self::assertSame(
+			100.00,
+			$GLOBALS['shurloc_test_user_meta'][101]
+				[ Shurloc_User_Cart_Service::CART_TOTAL_META_KEY ]
+		);
+	}
+
+	/**
+	 * Verify variation attributes are preserved for new snapshots.
+	 *
+	 * @return void
+	 */
+	public function test_variation_attributes_are_stored(): void {
+
+		$this->log_in_user( 101 );
+
+		$product = $this->create_product(
+			sku: 'VAR-123',
+			name: 'Variation Product',
+		);
+
+		$this->cart->set_test_cart(
+			array(
+				'variation-key' => array(
+					'product_id'    => 100,
+					'variation_id'  => 105,
+					'quantity'      => 1,
+					'line_subtotal' => 50.00,
+					'line_total'    => 50.00,
+					'data'          => $product,
+					'variation'     => array(
+						'attribute_pa_color' => 'yellow',
+						'attribute_size'     => 'large',
+					),
+				),
+			)
+		);
+
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
 		$items = $GLOBALS['shurloc_test_user_meta'][101]
 			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
 
-		self::assertCount(
-			2,
-			$items
-		);
-
 		self::assertSame(
-			4,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_COUNT_META_KEY ]
-		);
-	}
-
-	/**
-	 * Verify cart version increments on each capture.
-	 *
-	 * @return void
-	 */
-	public function test_cart_version_increments(): void {
-
-		$this->log_in_user( 101 );
-
-		$GLOBALS['shurloc_test_user_meta'][101]
-			[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ] = 5;
-
-		$this->service->capture_cart();
-
-		self::assertSame(
-			6,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ]
-		);
-	}
-
-	/**
-	 * Verify the updated timestamp changes when the cart is captured.
-	 *
-	 * @return void
-	 */
-	public function test_cart_updated_timestamp_is_stored(): void {
-
-		$this->log_in_user( 101 );
-
-		$GLOBALS['shurloc_test_time'] = 2_000_000;
-
-		$this->service->capture_cart();
-
-		self::assertSame(
-			2_000_000,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_UPDATED_META_KEY ]
-		);
-	}
-
-	/**
-	 * Verify an empty cart clears the stored snapshot.
-	 *
-	 * @return void
-	 */
-	public function test_empty_cart_replaces_previous_snapshot(): void {
-
-		$this->log_in_user( 101 );
-
-		$GLOBALS['shurloc_test_user_meta'][101] = array(
-			Shurloc_User_Cart_Service::CART_ITEMS_META_KEY => array(
-				array(
-					'product_id'   => 100,
-					'variation_id' => 0,
-					'qty'          => 2,
-					'sku'          => 'OLD',
-					'name'         => 'Old Product',
-					'key'          => 'old-key',
-					'variation'    => array(),
-				),
+			array(
+				'attribute_pa_color' => 'yellow',
+				'attribute_size'     => 'large',
 			),
-			Shurloc_User_Cart_Service::CART_COUNT_META_KEY => 2,
-			Shurloc_User_Cart_Service::CART_TOTAL_META_KEY => 100.00,
-			Shurloc_User_Cart_Service::CART_VERSION_META_KEY => 3,
-		);
-
-		$this->cart->set_test_cart( array() );
-		$this->cart->set_test_total( 0.0 );
-
-		$this->service->capture_cart();
-
-		self::assertSame(
-			array(),
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
-		);
-
-		self::assertSame(
-			0,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_COUNT_META_KEY ]
-		);
-
-		self::assertSame(
-			0.0,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_TOTAL_META_KEY ]
-		);
-
-		self::assertSame(
-			4,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_VERSION_META_KEY ]
+			$items[0]['variation']
 		);
 	}
 
 	/**
-	 * Verify the checkout empty-cart path stores an empty cart.
+	 * Verify invalid variation attributes are excluded.
 	 *
 	 * @return void
 	 */
-	public function test_cart_emptied_hook_captures_empty_cart(): void {
+	public function test_invalid_variation_attributes_are_ignored(): void {
 
 		$this->log_in_user( 101 );
 
 		$product = $this->create_product(
-			sku: 'TEST',
-			name: 'Test Product',
+			sku: 'VAR-123',
+			name: 'Variation Product',
 		);
 
 		$this->cart->set_test_cart(
 			array(
-				'abc123' => array(
-					'product_id'   => 100,
-					'variation_id' => 0,
-					'quantity'     => 1,
-					'data'         => $product,
+				'variation-key' => array(
+					'product_id'    => 100,
+					'variation_id'  => 105,
+					'quantity'      => 1,
+					'line_subtotal' => 50.00,
+					'line_total'    => 50.00,
+					'data'          => $product,
+					'variation'     => array(
+						'attribute_pa_color' => 'yellow',
+						'attribute_size'     => array( 'invalid' ),
+						123                  => 'invalid',
+					),
 				),
 			)
 		);
 
-		$this->service->capture_cart();
-
-		$this->cart->set_test_cart( array() );
-		$this->cart->set_test_total( 0.0 );
-
-		$this->service->register();
-
-		do_action( 'woocommerce_cart_emptied' );
-
-		self::assertSame(
-			array(),
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
+		$this->service->update_cart_snapshot(
+			$this->cart
 		);
 
-		self::assertSame(
-			0,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_COUNT_META_KEY ]
-		);
+		$items = $GLOBALS['shurloc_test_user_meta'][101]
+			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
 
 		self::assertSame(
-			0.0,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_TOTAL_META_KEY ]
-		);
-	}
-
-	/**
-	 * Verify cart items without product data are ignored.
-	 *
-	 * @return void
-	 */
-	public function test_cart_item_without_product_data_is_ignored(): void {
-
-		$this->log_in_user( 101 );
-
-		$this->cart->set_test_cart(
 			array(
-				'abc123' => array(
-					'product_id'   => 100,
-					'variation_id' => 0,
-					'quantity'     => 1,
-				),
-			)
-		);
-
-		$this->service->capture_cart();
-
-		self::assertSame(
-			array(),
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
+				'attribute_pa_color' => 'yellow',
+			),
+			$items[0]['variation']
 		);
 	}
 
 	/**
-	 * Verify cart items with invalid product data are ignored.
+	 * Verify missing optional item values are normalized.
 	 *
 	 * @return void
 	 */
-	public function test_cart_item_with_invalid_product_data_is_ignored(): void {
-
-		$this->log_in_user( 101 );
-
-		$this->cart->set_test_cart(
-			array(
-				'abc123' => array(
-					'product_id'   => 100,
-					'variation_id' => 0,
-					'quantity'     => 1,
-					'data'         => new \stdClass(),
-				),
-			)
-		);
-
-		$this->service->capture_cart();
-
-		self::assertSame(
-			array(),
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
-		);
-	}
-
-	/**
-	 * Verify zero-quantity cart items are ignored.
-	 *
-	 * @return void
-	 */
-	public function test_zero_quantity_cart_item_is_ignored(): void {
-
-		$this->log_in_user( 101 );
-
-		$product = $this->create_product(
-			sku: 'TEST',
-			name: 'Test Product',
-		);
-
-		$this->cart->set_test_cart(
-			array(
-				'abc123' => array(
-					'product_id'   => 100,
-					'variation_id' => 0,
-					'quantity'     => 0,
-					'data'         => $product,
-				),
-			)
-		);
-
-		$this->service->capture_cart();
-
-		self::assertSame(
-			array(),
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ]
-		);
-	}
-
-	/**
-	 * Verify a missing product ID is normalized to zero.
-	 *
-	 * @return void
-	 */
-	public function test_missing_product_id_is_normalized_to_zero(): void {
+	public function test_missing_item_values_are_normalized(): void {
 
 		$this->log_in_user( 101 );
 
@@ -617,72 +518,222 @@ final class ShurlocUserCartServiceTest extends TestCase {
 			)
 		);
 
-		$this->service->capture_cart();
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
 		$items = $GLOBALS['shurloc_test_user_meta'][101]
 			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
 
 		self::assertSame(
-			0,
-			$items[0]['product_id']
-		);
-
-		self::assertSame(
-			0,
-			$items[0]['variation_id']
-		);
-
-		self::assertSame(
-			array(),
-			$items[0]['variation']
+			array(
+				'cart_item_key' => 'abc123',
+				'product_id'    => 0,
+				'variation_id'  => 0,
+				'name'          => 'Test Product',
+				'sku'           => 'TEST',
+				'quantity'      => 1,
+				'line_subtotal' => 0.0,
+				'line_total'    => 0.0,
+				'variation'     => array(),
+			),
+			$items[0]
 		);
 	}
 
 	/**
-	 * Verify a missing total is normalized to zero.
+	 * Verify an item without valid product data is ignored.
 	 *
 	 * @return void
 	 */
-	public function test_missing_cart_total_is_normalized_to_zero(): void {
+	public function test_cart_item_without_product_data_is_ignored(): void {
 
 		$this->log_in_user( 101 );
 
-		$this->cart->set_test_totals(
+		$this->seed_existing_snapshot( 101 );
+
+		$this->cart->set_test_cart(
 			array(
-				'subtotal' => 100.00,
+				'abc123' => array(
+					'product_id'   => 100,
+					'variation_id' => 0,
+					'quantity'     => 1,
+				),
 			)
 		);
 
-		$this->service->capture_cart();
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
-		self::assertSame(
-			0.0,
-			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_TOTAL_META_KEY ]
+		self::assertArrayNotHasKey(
+			101,
+			$GLOBALS['shurloc_test_user_meta']
 		);
 	}
 
 	/**
-	 * Verify a nonnumeric total is normalized to zero.
+	 * Verify zero-quantity items are ignored.
 	 *
 	 * @return void
 	 */
-	public function test_invalid_cart_total_is_normalized_to_zero(): void {
+	public function test_zero_quantity_cart_item_is_ignored(): void {
 
 		$this->log_in_user( 101 );
 
-		$this->cart->set_test_totals(
+		$this->seed_existing_snapshot( 101 );
+
+		$product = $this->create_product(
+			sku: 'TEST',
+			name: 'Test Product',
+		);
+
+		$this->cart->set_test_cart(
 			array(
-				'total' => 'invalid',
+				'abc123' => array(
+					'product_id'    => 100,
+					'variation_id'  => 0,
+					'quantity'      => 0,
+					'line_subtotal' => 25.00,
+					'line_total'    => 25.00,
+					'data'          => $product,
+				),
 			)
 		);
 
-		$this->service->capture_cart();
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
+
+		self::assertArrayNotHasKey(
+			101,
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify an empty cart removes the complete stored snapshot.
+	 *
+	 * @return void
+	 */
+	public function test_empty_cart_clears_snapshot(): void {
+
+		$this->log_in_user( 101 );
+
+		$this->seed_existing_snapshot( 101 );
+
+		$this->cart->set_test_cart( array() );
+
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
+
+		self::assertArrayNotHasKey(
+			101,
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify an existing snapshot receives a refreshed expiration.
+	 *
+	 * @return void
+	 */
+	public function test_cart_expiration_is_refreshed(): void {
+
+		$this->log_in_user( 101 );
+
+		$GLOBALS['shurloc_test_time'] = 2_000_000;
+
+		$product = $this->create_product(
+			sku: 'TEST',
+			name: 'Test Product',
+		);
+
+		$this->cart->set_test_cart(
+			array(
+				'abc123' => array(
+					'product_id'    => 100,
+					'variation_id'  => 0,
+					'quantity'      => 1,
+					'line_subtotal' => 25.00,
+					'line_total'    => 25.00,
+					'data'          => $product,
+				),
+			)
+		);
+
+		$this->service->update_cart_snapshot(
+			$this->cart
+		);
 
 		self::assertSame(
-			0.0,
+			2_000_000 + ( 30 * self::DAY_IN_SECONDS ),
 			$GLOBALS['shurloc_test_user_meta'][101]
-				[ Shurloc_User_Cart_Service::CART_TOTAL_META_KEY ]
+				[ Shurloc_User_Cart_Service::CART_EXPIRES_META_KEY ]
+		);
+	}
+
+	/**
+	 * Verify checkout clears a registered customer's snapshot.
+	 *
+	 * @return void
+	 */
+	public function test_checkout_clears_customer_cart_snapshot(): void {
+
+		$this->seed_existing_snapshot( 101 );
+
+		$order = new WC_Order( 500 );
+
+		$order->set_customer_id( 101 );
+
+		$GLOBALS['shurloc_test_orders'][500] = $order;
+
+		$this->service->clear_cart_snapshot_after_purchase( 500 );
+
+		self::assertArrayNotHasKey(
+			101,
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify checkout for a guest order does not clear user metadata.
+	 *
+	 * @return void
+	 */
+	public function test_guest_checkout_is_ignored(): void {
+
+		$this->seed_existing_snapshot( 101 );
+
+		$order = new WC_Order( 500 );
+
+		$order->set_customer_id( 0 );
+
+		$GLOBALS['shurloc_test_orders'][500] = $order;
+
+		$this->service->clear_cart_snapshot_after_purchase( 500 );
+
+		self::assertArrayHasKey(
+			101,
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify a missing order is ignored.
+	 *
+	 * @return void
+	 */
+	public function test_missing_checkout_order_is_ignored(): void {
+
+		$this->seed_existing_snapshot( 101 );
+
+		$this->service->clear_cart_snapshot_after_purchase( 999 );
+
+		self::assertArrayHasKey(
+			101,
+			$GLOBALS['shurloc_test_user_meta']
 		);
 	}
 
@@ -718,5 +769,36 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		$product->set_name( $name );
 
 		return $product;
+	}
+
+	/**
+	 * Seed an existing cart snapshot.
+	 *
+	 * @param int $user_id User ID.
+	 * @return void
+	 */
+	private function seed_existing_snapshot(
+		int $user_id
+	): void {
+
+		$GLOBALS['shurloc_test_user_meta'][ $user_id ] = array(
+			Shurloc_User_Cart_Service::CART_COUNT_META_KEY => 2,
+			Shurloc_User_Cart_Service::CART_TOTAL_META_KEY => 100.00,
+			Shurloc_User_Cart_Service::CART_ITEMS_META_KEY => array(
+				array(
+					'cart_item_key' => 'old-key',
+					'product_id'    => 100,
+					'variation_id'  => 0,
+					'name'          => 'Old Product',
+					'sku'           => 'OLD',
+					'quantity'      => 2,
+					'line_subtotal' => 100.00,
+					'line_total'    => 100.00,
+				),
+			),
+			Shurloc_User_Cart_Service::CART_UPDATED_META_KEY => 900_000,
+			Shurloc_User_Cart_Service::CART_VERSION_META_KEY => 1,
+			Shurloc_User_Cart_Service::CART_EXPIRES_META_KEY => 3_492_000,
+		);
 	}
 }

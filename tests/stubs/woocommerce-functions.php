@@ -13,6 +13,11 @@ declare( strict_types=1 );
  */
 $GLOBALS['shurloc_test_woocommerce'] = null;
 
+/**
+ * WooCommerce orders indexed by order ID.
+ */
+$GLOBALS['shurloc_test_orders'] = array();
+
 
 if ( ! function_exists( 'wc_get_order_status_name' ) ) {
 
@@ -103,4 +108,32 @@ if ( ! function_exists( 'WC' ) ) {
 
 		return $GLOBALS['shurloc_test_woocommerce'];
 	}
+}
+
+
+/**
+ * Get a WooCommerce order.
+ *
+ * @param int $order_id Order ID.
+ * @return WC_Order|false
+ */
+function wc_get_order(
+	int $order_id
+): WC_Order|false {
+
+	if (
+		! isset( $GLOBALS['shurloc_test_orders'] ) ||
+		! is_array( $GLOBALS['shurloc_test_orders'] ) ||
+		! isset( $GLOBALS['shurloc_test_orders'][ $order_id ] )
+	) {
+		return false;
+	}
+
+	$order = $GLOBALS['shurloc_test_orders'][ $order_id ];
+
+	if ( ! $order instanceof WC_Order ) {
+		return false;
+	}
+
+	return $order;
 }

@@ -56,6 +56,13 @@ final class Shurloc_WC_Cart_Double extends WC_Cart {
 	}
 
 	/**
+	 * Test cart contents total.
+	 *
+	 * @var float
+	 */
+	private float $test_cart_contents_total = 0.0;
+
+	/**
 	 * Get the number of items in the cart.
 	 *
 	 * Counts quantities rather than cart lines to match WooCommerce behavior.
@@ -115,5 +122,28 @@ final class Shurloc_WC_Cart_Double extends WC_Cart {
 	public function get_totals(): array {
 
 		return $this->test_totals;
+	}
+
+	/**
+	 * Set the test cart contents total.
+	 *
+	 * @param float $total Cart contents total.
+	 * @return void
+	 */
+	public function set_test_cart_contents_total(
+		float $total
+	): void {
+
+		$this->test_cart_contents_total = $total;
+	}
+
+	/**
+	 * Get the cart contents total.
+	 *
+	 * @return float
+	 */
+	public function get_cart_contents_total(): float {
+
+		return $this->test_cart_contents_total;
 	}
 }

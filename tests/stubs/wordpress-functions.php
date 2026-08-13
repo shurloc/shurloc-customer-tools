@@ -681,3 +681,51 @@ if ( ! function_exists( 'esc_html__' ) ) {
 		return esc_html( $text );
 	}
 }
+
+
+/**
+ * Delete user metadata.
+ *
+ * Test replacement for delete_user_meta().
+ *
+ * @param int    $user_id  User ID.
+ * @param string $meta_key Metadata key.
+ * @return bool
+ */
+function delete_user_meta(
+	int $user_id,
+	string $meta_key
+): bool {
+
+	if (
+		! isset( $GLOBALS['shurloc_test_user_meta'][ $user_id ] ) ||
+		! is_array( $GLOBALS['shurloc_test_user_meta'][ $user_id ] )
+	) {
+		return false;
+	}
+
+	if (
+		! array_key_exists(
+			$meta_key,
+			$GLOBALS['shurloc_test_user_meta'][ $user_id ]
+		)
+	) {
+		return false;
+	}
+
+	unset(
+		$GLOBALS['shurloc_test_user_meta'][ $user_id ][ $meta_key ]
+	);
+
+	if (
+		empty(
+			$GLOBALS['shurloc_test_user_meta'][ $user_id ]
+		)
+	) {
+		unset(
+			$GLOBALS['shurloc_test_user_meta'][ $user_id ]
+		);
+	}
+
+	return true;
+}
