@@ -1,5 +1,62 @@
 # Changelog
 
+## [0.3.0] - 2026-08-13
+
+### Added
+
+- Added customer purchase tracking for WooCommerce orders.
+- Added **Last Purchase**, **Last Purchase Order**, **Last Purchase Status**, and **Last Purchase Total** values to user metadata.
+- Added automatic purchase tracking for qualifying WooCommerce order status changes.
+- Added protection against older orders overwriting a customer's more recent purchase metadata.
+- Added **Last Purchase** column to the WordPress Users screen.
+- Added relative-time formatting, linked order numbers, order status, and order totals to the **Last Purchase** column.
+- Added sortable **Last Purchase** column.
+- Added purchase filters for:
+  - Purchased within 1 day
+  - Purchased within 7 days
+  - Purchased within 30 days
+  - Not purchased within 1 day
+  - Not purchased within 7 days
+  - Not purchased within 30 days
+  - Never purchased
+- Added defensive handling of missing, empty, and zero-valued purchase timestamps.
+- Added a shared Users-screen filter coordinator for customer filtering controls.
+- Added PHPUnit coverage for:
+  - User purchase tracking
+  - Purchase metadata updates
+  - Older-order protection
+  - Order status changes
+  - Users table purchase column
+  - Purchase column sorting
+  - Last Purchase filters
+  - Existing user meta query preservation
+  - Invalid filter values
+  - Legacy and missing purchase metadata
+  - Shared Users-screen filter coordination
+
+### Changed
+
+- Renamed `Shurloc_Activity_Time_Formatter` to `Shurloc_Relative_Time_Formatter` for reuse across customer timestamp displays.
+- Refactored activity filters to use the shared Users-screen filter coordinator.
+- Removed the **Last Login** column and Last Login filtering from the WordPress Users screen.
+- Consolidated customer filter controls under a single shared **Filter** button.
+
+### Internal Improvements
+
+- Added dedicated services for purchase tracking, Users table purchase columns, and purchase filtering.
+- Reused relative-time formatting across activity and purchase information.
+- Separated shared Users-screen filter presentation from activity- and purchase-specific filtering logic.
+- Added WooCommerce and WordPress test doubles for order data, price formatting, order statuses, and related functions.
+- Kept purchase tracking, presentation, filtering, and shared admin UI responsibilities separated into focused classes.
+
+### Testing
+
+- Added PHPUnit coverage for the complete user purchase tracking feature.
+- Added regression coverage for older orders overwriting newer purchase metadata.
+- Added coverage for purchase filter selection persistence and combined user meta queries.
+- Added coverage for the shared Users-screen filter toolbar and single Filter button.
+- Verified PHPUnit, PHPCS, and PHPStan checks pass.
+
 ## [0.2.0] - 2026-08-13
 
 ### Added
