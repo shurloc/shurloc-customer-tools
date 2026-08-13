@@ -48,7 +48,7 @@ function shurloc_customer_tools_bootstrap(): void {
 	$admin_page->register();
 
 	/**
-	 * User ativity tracking.
+	 * User activity and purchase tracking.
 	 */
 
 	$user_activity_service = new Shurloc_User_Activity_Service();
@@ -76,6 +76,14 @@ function shurloc_customer_tools_bootstrap(): void {
 	$user_filters->register();
 	$user_activity_filters->register();
 	$user_purchase_filters->register();
+
+	/**
+	 * Add columns to the user table.
+	 */
+
+	$user_phone_column = new Shurloc_User_Phone_Column();
+
+	$user_phone_column->register();
 }
 
 add_action(
