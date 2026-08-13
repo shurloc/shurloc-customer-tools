@@ -543,3 +543,141 @@ if ( ! function_exists( 'wp_strip_all_tags' ) ) {
 		return trim( $text );
 	}
 }
+
+
+if ( ! function_exists( 'admin_url' ) ) {
+
+	/**
+	 * Get an admin URL.
+	 *
+	 * Test replacement for admin_url().
+	 *
+	 * @param string $path Admin path.
+	 * @return string
+	 */
+	function admin_url(
+		string $path = ''
+	): string {
+
+		return 'https://example.com/wp-admin/' . ltrim( $path, '/' );
+	}
+}
+
+
+if ( ! function_exists( 'add_query_arg' ) ) {
+
+	/**
+	 * Add query arguments to a URL.
+	 *
+	 * Test replacement for add_query_arg().
+	 *
+	 * @param array<string,int|string> $args Query arguments.
+	 * @param string                   $url  Base URL.
+	 * @return string
+	 */
+	function add_query_arg(
+		array $args,
+		string $url
+	): string {
+
+		if ( empty( $args ) ) {
+			return $url;
+		}
+
+		$separator = str_contains( $url, '?' )
+			? '&'
+			: '?';
+
+		return $url
+			. $separator
+			. http_build_query( $args );
+	}
+}
+
+
+if ( ! function_exists( 'esc_url' ) ) {
+
+	/**
+	 * Escape a URL.
+	 *
+	 * Test replacement for esc_url().
+	 *
+	 * @param string $url URL.
+	 * @return string
+	 */
+	function esc_url(
+		string $url
+	): string {
+
+		return $url;
+	}
+}
+
+
+if ( ! function_exists( 'esc_html' ) ) {
+
+	/**
+	 * Escape HTML text.
+	 *
+	 * Test replacement for esc_html().
+	 *
+	 * @param string $text Text.
+	 * @return string
+	 */
+	function esc_html(
+		string $text
+	): string {
+
+		return htmlspecialchars(
+			$text,
+			ENT_QUOTES | ENT_SUBSTITUTE,
+			'UTF-8'
+		);
+	}
+}
+
+
+if ( ! function_exists( '__' ) ) {
+
+	/**
+	 * Return translated text unchanged.
+	 *
+	 * Test replacement for __().
+	 *
+	 * @param string $text   Text.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function __(
+		string $text,
+		string $domain = 'default'
+	): string {
+
+		unset( $domain );
+
+		return $text;
+	}
+}
+
+
+if ( ! function_exists( 'esc_html__' ) ) {
+
+	/**
+	 * Translate and escape HTML text.
+	 *
+	 * Test replacement for esc_html__().
+	 *
+	 * @param string $text   Text.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function esc_html__(
+		string $text,
+		string $domain = 'default'
+	): string {
+
+		unset( $domain );
+
+		return esc_html( $text );
+	}
+}
