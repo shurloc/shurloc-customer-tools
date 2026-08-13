@@ -37,7 +37,7 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 		$GLOBALS['shurloc_test_user_meta']       = array();
 		$GLOBALS['shurloc_test_time']            = 1_000_000;
 
-		$time_formatter = new Shurloc_Activity_Time_Formatter();
+		$time_formatter = new Shurloc_Relative_Time_Formatter();
 
 		$this->columns = new Shurloc_User_Activity_Columns(
 			time_formatter: $time_formatter,

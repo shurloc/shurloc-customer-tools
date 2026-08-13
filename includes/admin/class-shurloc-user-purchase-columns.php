@@ -26,19 +26,19 @@ final class Shurloc_User_Purchase_Columns {
 	public const LAST_PURCHASE_COLUMN = 'shurloc_last_purchase';
 
 	/**
-	 * Activity time formatter.
+	 * Relative time formatter.
 	 *
-	 * @var Shurloc_Activity_Time_Formatter
+	 * @var Shurloc_Relative_Time_Formatter
 	 */
-	private Shurloc_Activity_Time_Formatter $time_formatter;
+	private Shurloc_Relative_Time_Formatter $time_formatter;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Shurloc_Activity_Time_Formatter $time_formatter Activity time formatter.
+	 * @param Shurloc_Relative_Time_Formatter $time_formatter Relative time formatter.
 	 */
 	public function __construct(
-		Shurloc_Activity_Time_Formatter $time_formatter
+		Shurloc_Relative_Time_Formatter $time_formatter
 	) {
 
 		$this->time_formatter = $time_formatter;

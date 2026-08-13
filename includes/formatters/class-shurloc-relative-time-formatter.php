@@ -1,8 +1,8 @@
 <?php
 /**
- * Activity time formatter.
+ * Time formatter.
  *
- * Formats user activity timestamps for display in the WordPress
+ * Formats timestamps for display in the WordPress
  * administration area.
  *
  * @package ShurLocCustomerTools
@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Formats user activity timestamps for display.
  */
-final class Shurloc_Activity_Time_Formatter {
+final class Shurloc_Relative_Time_Formatter {
 
 	/**
 	 * Number of seconds in one minute.

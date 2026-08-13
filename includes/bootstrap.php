@@ -47,10 +47,10 @@ function shurloc_customer_tools_bootstrap(): void {
 
 	$user_activity_service = new Shurloc_User_Activity_Service();
 
-	$activity_time_formatter = new Shurloc_Activity_Time_Formatter();
+	$relative_time_formatter = new Shurloc_Relative_Time_Formatter();
 
 	$user_activity_columns = new Shurloc_User_Activity_Columns(
-		time_formatter: $activity_time_formatter,
+		time_formatter: $relative_time_formatter,
 	);
 
 	$user_filters = new Shurloc_User_Filters();

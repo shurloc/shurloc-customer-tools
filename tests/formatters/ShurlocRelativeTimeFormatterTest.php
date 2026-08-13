@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for the activity time formatter.
+ * Tests for the relative time formatter.
  *
  * @package ShurLocCustomerTools
  */
@@ -12,16 +12,16 @@ namespace Shurloc\CustomerTools;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Tests the activity time formatter.
+ * Tests the relative time formatter.
  */
-final class ShurlocActivityTimeFormatterTest extends TestCase {
+final class ShurlocRelativeTimeFormatterTest extends TestCase {
 
 	/**
 	 * Formatter under test.
 	 *
-	 * @var Shurloc_Activity_Time_Formatter
+	 * @var Shurloc_Relative_Time_Formatter
 	 */
-	private Shurloc_Activity_Time_Formatter $formatter;
+	private Shurloc_Relative_Time_Formatter $formatter;
 
 	/**
 	 * Prepare each test.
@@ -34,7 +34,7 @@ final class ShurlocActivityTimeFormatterTest extends TestCase {
 
 		$GLOBALS['shurloc_test_time'] = 1_000_000;
 
-		$this->formatter = new Shurloc_Activity_Time_Formatter();
+		$this->formatter = new Shurloc_Relative_Time_Formatter();
 	}
 
 	/**
