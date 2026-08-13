@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Bootstrap the plugin.
  */
 function shurloc_customer_tools_bootstrap(): void {
-	/*
+	/**
 	 * Autoloader.
 	 */
 
@@ -29,6 +29,10 @@ function shurloc_customer_tools_bootstrap(): void {
 
 	$autoloader->register();
 
+	/**
+	 * Admin page.
+	 */
+
 	$customer_page = new Shurloc_Admin_Page_Controller();
 
 	$admin_page = new Shurloc_Admin_Menu(
@@ -36,6 +40,24 @@ function shurloc_customer_tools_bootstrap(): void {
 	);
 
 	$admin_page->register();
+
+	/**
+	 * User ativity tracking.
+	 */
+
+	$user_activity_service = new Shurloc_User_Activity_Service();
+
+	$activity_time_formatter = new Shurloc_Activity_Time_Formatter();
+
+	$user_activity_columns = new Shurloc_User_Activity_Columns(
+		time_formatter: $activity_time_formatter,
+	);
+
+	$user_activity_filters = new Shurloc_User_Activity_Filters();
+
+	$user_activity_service->register();
+	$user_activity_columns->register();
+	$user_activity_filters->register();
 }
 
 add_action(
