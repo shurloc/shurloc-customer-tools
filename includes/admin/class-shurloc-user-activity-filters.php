@@ -113,7 +113,7 @@ final class Shurloc_User_Activity_Filters {
 			self::LAST_ACTIVITY_FILTER
 		);
 		?>
-
+<!--
 		<label
 			class="screen-reader-text"
 			for="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
@@ -187,7 +187,7 @@ final class Shurloc_User_Activity_Filters {
 				?>
 			</option>
 		</select>
-
+-->
 		<label
 			class="screen-reader-text"
 			for="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
