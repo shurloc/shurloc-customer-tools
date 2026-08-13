@@ -204,7 +204,8 @@ final class Shurloc_User_Cart_Service {
 	 *     qty:int,
 	 *     sku:string,
 	 *     name:string,
-	 *     key:string
+	 *     key:string,
+	 *     variation:array<string,string>
 	 * }>
 	 */
 	private function get_cart_items(
@@ -240,6 +241,10 @@ final class Shurloc_User_Cart_Service {
 				continue;
 			}
 
+			$variation = $this->get_variation_attributes(
+				cart_item: $cart_item,
+			);
+
 			$items[] = array(
 				'product_id'   => $product_id,
 				'variation_id' => $variation_id,
@@ -247,10 +252,45 @@ final class Shurloc_User_Cart_Service {
 				'sku'          => $product->get_sku(),
 				'name'         => $product->get_name(),
 				'key'          => (string) $cart_item_key,
+				'variation'    => $variation,
 			);
 		}
 
 		return $items;
+	}
+
+	/**
+	 * Get normalized variation attributes from a cart item.
+	 *
+	 * @param array<string,mixed> $cart_item WooCommerce cart item.
+	 * @return array<string,string>
+	 */
+	private function get_variation_attributes(
+		array $cart_item
+	): array {
+
+		if (
+			! isset( $cart_item['variation'] ) ||
+			! is_array( $cart_item['variation'] )
+		) {
+			return array();
+		}
+
+		$variation = array();
+
+		foreach ( $cart_item['variation'] as $attribute => $value ) {
+
+			if (
+				! is_string( $attribute ) ||
+				! is_string( $value )
+			) {
+				continue;
+			}
+
+			$variation[ $attribute ] = $value;
+		}
+
+		return $variation;
 	}
 
 	/**

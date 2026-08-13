@@ -182,6 +182,7 @@ final class ShurlocUserCartServiceTest extends TestCase {
 					'sku'          => 'TEST-123',
 					'name'         => 'Test Product',
 					'key'          => 'abc123',
+					'variation'    => array(),
 				),
 			),
 			$GLOBALS['shurloc_test_user_meta'][101]
@@ -210,6 +211,92 @@ final class ShurlocUserCartServiceTest extends TestCase {
 			1_000_000,
 			$GLOBALS['shurloc_test_user_meta'][101]
 				[ Shurloc_User_Cart_Service::CART_UPDATED_META_KEY ]
+		);
+	}
+
+	/**
+	 * Verify variation attributes are preserved.
+	 *
+	 * @return void
+	 */
+	public function test_variation_attributes_are_stored(): void {
+
+		$this->log_in_user( 101 );
+
+		$product = $this->create_product(
+			sku: 'VAR-123',
+			name: 'Variation Product',
+		);
+
+		$this->cart->set_test_cart(
+			array(
+				'variation-key' => array(
+					'product_id'   => 100,
+					'variation_id' => 105,
+					'quantity'     => 1,
+					'data'         => $product,
+					'variation'    => array(
+						'attribute_pa_color' => 'yellow',
+						'attribute_size'     => 'large',
+					),
+				),
+			)
+		);
+
+		$this->service->capture_cart();
+
+		$items = $GLOBALS['shurloc_test_user_meta'][101]
+			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
+
+		self::assertSame(
+			array(
+				'attribute_pa_color' => 'yellow',
+				'attribute_size'     => 'large',
+			),
+			$items[0]['variation']
+		);
+	}
+
+	/**
+	 * Verify invalid variation attributes are ignored.
+	 *
+	 * @return void
+	 */
+	public function test_invalid_variation_attributes_are_ignored(): void {
+
+		$this->log_in_user( 101 );
+
+		$product = $this->create_product(
+			sku: 'VAR-123',
+			name: 'Variation Product',
+		);
+
+		$this->cart->set_test_cart(
+			array(
+				'variation-key' => array(
+					'product_id'   => 100,
+					'variation_id' => 105,
+					'quantity'     => 1,
+					'data'         => $product,
+					'variation'    => array(
+						'attribute_pa_color' => 'yellow',
+						'attribute_size'     => array( 'invalid' ),
+						123                  => 'invalid',
+					),
+				),
+			)
+		);
+
+		$this->service->capture_cart();
+
+		$items = $GLOBALS['shurloc_test_user_meta'][101]
+			[ Shurloc_User_Cart_Service::CART_ITEMS_META_KEY ];
+
+		self::assertSame(
+			array(
+				'attribute_pa_color' => 'yellow',
+			),
+			$items[0]['variation']
 		);
 	}
 
@@ -325,6 +412,7 @@ final class ShurlocUserCartServiceTest extends TestCase {
 					'sku'          => 'OLD',
 					'name'         => 'Old Product',
 					'key'          => 'old-key',
+					'variation'    => array(),
 				),
 			),
 			Shurloc_User_Cart_Service::CART_COUNT_META_KEY => 2,
@@ -542,6 +630,11 @@ final class ShurlocUserCartServiceTest extends TestCase {
 		self::assertSame(
 			0,
 			$items[0]['variation_id']
+		);
+
+		self::assertSame(
+			array(),
+			$items[0]['variation']
 		);
 	}
 
