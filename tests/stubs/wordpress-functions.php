@@ -468,11 +468,11 @@ if ( ! function_exists( 'selected' ) ) {
 		 *
 		 * Test replacement for submit_button().
 		 *
-		 * @param string $text             Button text.
-		 * @param string $type             Button type.
-		 * @param string $name             Button name.
-		 * @param bool   $wrap             Whether to wrap the button.
-		 * @param array  $other_attributes Additional attributes.
+		 * @param string              $text             Button text.
+		 * @param string              $type             Button type.
+		 * @param string              $name             Button name.
+		 * @param bool                $wrap             Whether to wrap the button.
+		 * @param array<string,mixed> $other_attributes Additional attributes.
 		 * @return void
 		 */
 		function submit_button(

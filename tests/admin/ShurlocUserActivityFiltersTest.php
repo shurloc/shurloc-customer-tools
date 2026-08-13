@@ -58,11 +58,11 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify the Users filter UI hook is registered.
+	 * Verify the Users extra tablenav hook is registered.
 	 *
 	 * @return void
 	 */
-	public function test_register_adds_restrict_manage_users_action(): void {
+	public function test_register_adds_manage_users_extra_tablenav_action(): void {
 
 		$this->filters->register();
 
@@ -71,7 +71,19 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 				$this->filters,
 				'render_filters',
 			),
-			$GLOBALS['shurloc_test_actions']['restrict_manage_users']
+			$GLOBALS['shurloc_test_actions']['manage_users_extra_tablenav']
+		);
+
+		self::assertSame(
+			10,
+			$GLOBALS['shurloc_test_action_metadata']
+				['manage_users_extra_tablenav'][0]['priority']
+		);
+
+		self::assertSame(
+			1,
+			$GLOBALS['shurloc_test_action_metadata']
+				['manage_users_extra_tablenav'][0]['accepted_args']
 		);
 	}
 
@@ -102,7 +114,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 
 		ob_start();
 
-		$this->filters->render_filters();
+		$this->filters->render_filters( 'top' );
 
 		$output = ob_get_clean();
 
@@ -128,7 +140,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 
 		ob_start();
 
-		$this->filters->render_filters();
+		$this->filters->render_filters( 'top' );
 
 		$output = ob_get_clean();
 
@@ -146,6 +158,27 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
+	 * Verify filters are not rendered in the bottom controls.
+	 *
+	 * @return void
+	 */
+	public function test_filters_are_not_rendered_at_bottom(): void {
+
+		ob_start();
+
+		$this->filters->render_filters( 'bottom' );
+
+		$output = ob_get_clean();
+
+		self::assertIsString( $output );
+
+		self::assertSame(
+			'',
+			$output
+		);
+	}
+
+	/**
 	 * Verify selected Last Login filter value is preserved.
 	 *
 	 * @return void
@@ -156,7 +189,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 
 		ob_start();
 
-		$this->filters->render_filters();
+		$this->filters->render_filters( 'top' );
 
 		$output = ob_get_clean();
 
@@ -179,7 +212,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 
 		ob_start();
 
-		$this->filters->render_filters();
+		$this->filters->render_filters( 'top' );
 
 		$output = ob_get_clean();
 
