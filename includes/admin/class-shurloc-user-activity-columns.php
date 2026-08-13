@@ -23,14 +23,14 @@ final class Shurloc_User_Activity_Columns {
 	 *
 	 * @var string
 	 */
-	private const LAST_LOGIN_COLUMN = 'shurloc_last_login';
+	public const LAST_LOGIN_COLUMN = 'shurloc_last_login';
 
 	/**
 	 * Last Activity column key.
 	 *
 	 * @var string
 	 */
-	private const LAST_ACTIVITY_COLUMN = 'shurloc_last_activity';
+	public const LAST_ACTIVITY_COLUMN = 'shurloc_last_activity';
 
 	/**
 	 * Activity time formatter.
@@ -128,14 +128,20 @@ final class Shurloc_User_Activity_Columns {
 				return $this->render_timestamp_column(
 					user_id: $user_id,
 					meta_key: Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
-					empty_label: __( 'Never', 'shurloc-customer-tools' ),
+					empty_label: __(
+						'Never',
+						'shurloc-customer-tools'
+					),
 				);
 
 			case self::LAST_ACTIVITY_COLUMN:
 				return $this->render_timestamp_column(
 					user_id: $user_id,
 					meta_key: Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
-					empty_label: __( 'Never Active', 'shurloc-customer-tools' ),
+					empty_label: __(
+						'Never Active',
+						'shurloc-customer-tools'
+					),
 				);
 
 			default:

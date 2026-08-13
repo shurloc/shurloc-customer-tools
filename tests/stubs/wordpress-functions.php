@@ -39,6 +39,11 @@ $GLOBALS['shurloc_test_user_meta'] = array();
  */
 $GLOBALS['shurloc_test_time'] = 0;
 
+/**
+ * Registered test filters.
+ */
+$GLOBALS['shurloc_test_filters'] = array();
+
 
 if ( ! function_exists( 'add_action' ) ) {
 
@@ -286,6 +291,57 @@ if ( ! function_exists( 'wp_date' ) ) {
 		return gmdate(
 			$format,
 			$timestamp
+		);
+	}
+}
+
+
+if ( ! function_exists( 'add_filter' ) ) {
+
+	/**
+	 * Register a test filter.
+	 *
+	 * @param string   $hook          Hook name.
+	 * @param callable $callback      Callback.
+	 * @param int      $priority      Priority.
+	 * @param int      $accepted_args Accepted arguments.
+	 * @return true
+	 */
+	function add_filter(
+		string $hook,
+		$callback,
+		int $priority = 10,
+		int $accepted_args = 1
+	): bool {
+
+		$GLOBALS['shurloc_test_filters'][ $hook ][] = $callback;
+
+		$GLOBALS['shurloc_test_filter_metadata'][ $hook ][] = array(
+			'priority'      => $priority,
+			'accepted_args' => $accepted_args,
+		);
+
+		return true;
+	}
+}
+
+
+if ( ! function_exists( 'esc_html' ) ) {
+
+	/**
+	 * Escape HTML text.
+	 *
+	 * @param string $text Text to escape.
+	 * @return string
+	 */
+	function esc_html(
+		string $text
+	): string {
+
+		return htmlspecialchars(
+			$text,
+			ENT_QUOTES | ENT_SUBSTITUTE,
+			'UTF-8'
 		);
 	}
 }
