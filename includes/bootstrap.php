@@ -30,6 +30,12 @@ function shurloc_customer_tools_bootstrap(): void {
 	$autoloader->register();
 
 	/**
+	 * Helpers.
+	 */
+
+	$relative_time_formatter = new Shurloc_Relative_Time_Formatter();
+
+	/**
 	 * Admin page.
 	 */
 
@@ -48,8 +54,6 @@ function shurloc_customer_tools_bootstrap(): void {
 	$user_activity_service = new Shurloc_User_Activity_Service();
 
 	$user_purchase_service = new Shurloc_User_Purchase_Service();
-
-	$relative_time_formatter = new Shurloc_Relative_Time_Formatter();
 
 	$user_activity_columns = new Shurloc_User_Activity_Columns(
 		time_formatter: $relative_time_formatter,
