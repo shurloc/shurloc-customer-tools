@@ -33,19 +33,19 @@ final class Shurloc_User_Activity_Columns {
 	public const LAST_ACTIVITY_COLUMN = 'shurloc_last_activity';
 
 	/**
-	 * Activity time formatter.
+	 * Relative time formatter.
 	 *
-	 * @var Shurloc_Activity_Time_Formatter
+	 * @var Shurloc_Relative_Time_Formatter
 	 */
-	private Shurloc_Activity_Time_Formatter $time_formatter;
+	private Shurloc_Relative_Time_Formatter $time_formatter;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param Shurloc_Activity_Time_Formatter $time_formatter Activity time formatter.
+	 * @param Shurloc_Relative_Time_Formatter $time_formatter Relative time formatter.
 	 */
 	public function __construct(
-		Shurloc_Activity_Time_Formatter $time_formatter
+		Shurloc_Relative_Time_Formatter $time_formatter
 	) {
 
 		$this->time_formatter = $time_formatter;
@@ -94,12 +94,13 @@ final class Shurloc_User_Activity_Columns {
 	public function add_columns(
 		array $columns
 	): array {
-
+		/**
+		 * Remove last login column.
 		$columns[ self::LAST_LOGIN_COLUMN ] = __(
 			'Last Login',
 			'shurloc-customer-tools'
 		);
-
+		*/
 		$columns[ self::LAST_ACTIVITY_COLUMN ] = __(
 			'Last Activity',
 			'shurloc-customer-tools'
@@ -123,7 +124,8 @@ final class Shurloc_User_Activity_Columns {
 	): string {
 
 		switch ( $column_name ) {
-
+			/**
+			 * Remove last login column.
 			case self::LAST_LOGIN_COLUMN:
 				return $this->render_timestamp_column(
 					user_id: $user_id,
@@ -133,7 +135,7 @@ final class Shurloc_User_Activity_Columns {
 						'shurloc-customer-tools'
 					),
 				);
-
+			*/
 			case self::LAST_ACTIVITY_COLUMN:
 				return $this->render_timestamp_column(
 					user_id: $user_id,
@@ -158,10 +160,11 @@ final class Shurloc_User_Activity_Columns {
 	public function register_sortable_columns(
 		array $columns
 	): array {
-
+		/**
+		 * Remove last login column.
 		$columns[ self::LAST_LOGIN_COLUMN ] =
 			Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY;
-
+		*/
 		$columns[ self::LAST_ACTIVITY_COLUMN ] =
 			Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY;
 

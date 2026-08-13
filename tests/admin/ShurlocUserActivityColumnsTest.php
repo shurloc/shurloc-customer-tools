@@ -37,7 +37,7 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 		$GLOBALS['shurloc_test_user_meta']       = array();
 		$GLOBALS['shurloc_test_time']            = 1_000_000;
 
-		$time_formatter = new Shurloc_Activity_Time_Formatter();
+		$time_formatter = new Shurloc_Relative_Time_Formatter();
 
 		$this->columns = new Shurloc_User_Activity_Columns(
 			time_formatter: $time_formatter,
@@ -129,7 +129,10 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 			array(
 				'username'              => 'Username',
 				'email'                 => 'Email',
+				/**
+				 *  Remove last login column.
 				'shurloc_last_login'    => 'Last Login',
+				*/
 				'shurloc_last_activity' => 'Last Activity',
 			),
 			$result
@@ -141,6 +144,8 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 *  Remove last login column.
 	public function test_last_login_column_renders_formatted_timestamp(): void {
 
 		$GLOBALS['shurloc_test_user_meta'][101]
@@ -158,6 +163,7 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 			$result
 		);
 	}
+	 */
 
 	/**
 	 * Verify the Last Activity column renders a formatted timestamp.
@@ -187,6 +193,8 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 *  Remove last login column.
 	public function test_missing_last_login_renders_never(): void {
 
 		$result = $this->columns->render_column(
@@ -200,6 +208,7 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 			$result
 		);
 	}
+	 */
 
 	/**
 	 * Verify missing Last Activity metadata renders Never Active.
@@ -225,6 +234,8 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Remove last login column.
 	public function test_zero_last_login_renders_never(): void {
 
 		$GLOBALS['shurloc_test_user_meta'][101]
@@ -241,6 +252,7 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 			$result
 		);
 	}
+	 */
 
 	/**
 	 * Verify unrelated column output is preserved.
@@ -266,6 +278,8 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 	 *
 	 * @return void
 	 */
+	/**
+	 * Remove last login column.
 	public function test_last_login_column_is_sortable(): void {
 
 		$result = $this->columns->register_sortable_columns(
@@ -277,6 +291,7 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 			$result[ Shurloc_User_Activity_Columns::LAST_LOGIN_COLUMN ]
 		);
 	}
+	 */
 
 	/**
 	 * Verify the Last Activity column is sortable by its meta key.
@@ -313,10 +328,13 @@ final class ShurlocUserActivityColumnsTest extends TestCase {
 			$result['username']
 		);
 
+		/**
+		 * Remove last login column.
 		self::assertSame(
 			Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
 			$result[ Shurloc_User_Activity_Columns::LAST_LOGIN_COLUMN ]
 		);
+		 */
 
 		self::assertSame(
 			Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,

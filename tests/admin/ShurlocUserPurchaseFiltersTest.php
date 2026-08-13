@@ -1,6 +1,6 @@
 <?php
 /**
- * Tests for user activity admin filters.
+ * Tests for user purchase admin filters.
  *
  * @package ShurLocCustomerTools
  */
@@ -13,16 +13,16 @@ use PHPUnit\Framework\TestCase;
 use WP_User_Query;
 
 /**
- * Tests the user activity admin filters.
+ * Tests the user purchase admin filters.
  */
-final class ShurlocUserActivityFiltersTest extends TestCase {
+final class ShurlocUserPurchaseFiltersTest extends TestCase {
 
 	/**
 	 * Filters class under test.
 	 *
-	 * @var Shurloc_User_Activity_Filters
+	 * @var Shurloc_User_Purchase_Filters
 	 */
-	private Shurloc_User_Activity_Filters $filters;
+	private Shurloc_User_Purchase_Filters $filters;
 
 	/**
 	 * Prepare each test.
@@ -39,7 +39,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		$GLOBALS['shurloc_test_action_metadata'] = array();
 		$GLOBALS['shurloc_test_time']            = 1_000_000;
 
-		$this->filters = new Shurloc_User_Activity_Filters();
+		$this->filters = new Shurloc_User_Purchase_Filters();
 	}
 
 	/**
@@ -76,15 +76,9 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		);
 
 		self::assertSame(
-			10,
+			20,
 			$GLOBALS['shurloc_test_action_metadata']
 				[ Shurloc_User_Filters::FILTER_CONTROLS_ACTION ][0]['priority']
-		);
-
-		self::assertSame(
-			1,
-			$GLOBALS['shurloc_test_action_metadata']
-				[ Shurloc_User_Filters::FILTER_CONTROLS_ACTION ][0]['accepted_args']
 		);
 	}
 
@@ -107,11 +101,11 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify the Last Login filter is rendered.
+	 * Verify the Last Purchase filter is rendered.
 	 *
 	 * @return void
 	 */
-	public function test_last_login_filter_is_rendered(): void {
+	public function test_last_purchase_filter_is_rendered(): void {
 
 		ob_start();
 
@@ -122,22 +116,22 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertIsString( $output );
 
 		self::assertStringContainsString(
-			'name="shurloc_last_login"',
+			'name="shurloc_last_purchase"',
 			$output
 		);
 
 		self::assertStringContainsString(
-			'Never Logged In',
+			'Never Purchased',
 			$output
 		);
 	}
 
 	/**
-	 * Verify the Last Activity filter is rendered.
+	 * Verify the Last Order Status filter is rendered.
 	 *
 	 * @return void
 	 */
-	public function test_last_activity_filter_is_rendered(): void {
+	public function test_last_order_status_filter_is_rendered(): void {
 
 		ob_start();
 
@@ -148,47 +142,19 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertIsString( $output );
 
 		self::assertStringContainsString(
-			'name="shurloc_last_activity"',
-			$output
-		);
-
-		self::assertStringContainsString(
-			'Never Active',
+			'name="shurloc_last_order_status"',
 			$output
 		);
 	}
 
 	/**
-	 * Verify selected Last Login filter value is preserved.
+	 * Verify a selected Last Purchase filter is preserved.
 	 *
 	 * @return void
 	 */
-	public function test_selected_last_login_filter_is_preserved(): void {
+	public function test_selected_last_purchase_filter_is_preserved(): void {
 
-		$_GET['shurloc_last_login'] = '7';
-
-		ob_start();
-
-		$this->filters->render_filters();
-
-		$output = ob_get_clean();
-
-		self::assertIsString( $output );
-
-		self::assertMatchesRegularExpression(
-			'/value="7"\s+selected="selected"/',
-			$output
-		);
-	}
-
-	/**
-	 * Verify selected Last Activity filter value is preserved.
-	 *
-	 * @return void
-	 */
-	public function test_selected_last_activity_filter_is_preserved(): void {
-
-		$_GET['shurloc_last_activity'] = '30';
+		$_GET['shurloc_last_purchase'] = 'not-30';
 
 		ob_start();
 
@@ -199,54 +165,51 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertIsString( $output );
 
 		self::assertMatchesRegularExpression(
-			'/value="30"\s+selected="selected"/',
+			'/value="not-30"\s+selected="selected"/',
 			$output
 		);
 	}
 
 	/**
-	 * Verify Last Login sorting uses numeric user meta.
+	 * Verify a selected order status is preserved.
 	 *
 	 * @return void
 	 */
-	public function test_last_login_sorting_uses_numeric_meta(): void {
+	public function test_selected_order_status_filter_is_preserved(): void {
 
-		$query = new WP_User_Query(
-			array(
-				'orderby' => Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
-			)
-		);
+		$_GET['shurloc_last_order_status'] = 'completed';
 
-		$this->filters->modify_user_query( $query );
+		ob_start();
 
-		self::assertSame(
-			Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
-			$query->get( 'meta_key' )
-		);
+		$this->filters->render_filters();
 
-		self::assertSame(
-			'meta_value_num',
-			$query->get( 'orderby' )
+		$output = ob_get_clean();
+
+		self::assertIsString( $output );
+
+		self::assertMatchesRegularExpression(
+			'/value="completed"\s+selected="selected"/',
+			$output
 		);
 	}
 
 	/**
-	 * Verify Last Activity sorting uses numeric user meta.
+	 * Verify Last Purchase sorting uses numeric user meta.
 	 *
 	 * @return void
 	 */
-	public function test_last_activity_sorting_uses_numeric_meta(): void {
+	public function test_last_purchase_sorting_uses_numeric_meta(): void {
 
 		$query = new WP_User_Query(
 			array(
-				'orderby' => Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
+				'orderby' => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
 			)
 		);
 
 		$this->filters->modify_user_query( $query );
 
 		self::assertSame(
-			Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
+			Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
 			$query->get( 'meta_key' )
 		);
 
@@ -282,13 +245,13 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify one-day Last Login filtering.
+	 * Verify one-day purchase filtering.
 	 *
 	 * @return void
 	 */
-	public function test_last_login_one_day_filter_adds_meta_query(): void {
+	public function test_one_day_purchase_filter_adds_meta_query(): void {
 
-		$_GET['shurloc_last_login'] = '1';
+		$_GET['shurloc_last_purchase'] = '1';
 
 		$query = new WP_User_Query();
 
@@ -297,7 +260,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertSame(
 			array(
 				array(
-					'key'     => Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
+					'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
 					'value'   => 913600,
 					'compare' => '>=',
 					'type'    => 'NUMERIC',
@@ -308,13 +271,13 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify seven-day Last Activity filtering.
+	 * Verify seven-day purchase filtering.
 	 *
 	 * @return void
 	 */
-	public function test_last_activity_seven_day_filter_adds_meta_query(): void {
+	public function test_seven_day_purchase_filter_adds_meta_query(): void {
 
-		$_GET['shurloc_last_activity'] = '7';
+		$_GET['shurloc_last_purchase'] = '7';
 
 		$query = new WP_User_Query();
 
@@ -323,7 +286,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertSame(
 			array(
 				array(
-					'key'     => Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
+					'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
 					'value'   => 395200,
 					'compare' => '>=',
 					'type'    => 'NUMERIC',
@@ -334,15 +297,15 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify thirty-day activity filtering.
+	 * Verify thirty-day purchase filtering.
 	 *
 	 * @return void
 	 */
-	public function test_last_activity_thirty_day_filter_adds_meta_query(): void {
+	public function test_thirty_day_purchase_filter_adds_meta_query(): void {
 
 		$GLOBALS['shurloc_test_time'] = 3_000_000;
 
-		$_GET['shurloc_last_activity'] = '30';
+		$_GET['shurloc_last_purchase'] = '30';
 
 		$query = new WP_User_Query();
 
@@ -356,16 +319,21 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 			408000,
 			$meta_query[0]['value']
 		);
+
+		self::assertSame(
+			'>=',
+			$meta_query[0]['compare']
+		);
 	}
 
 	/**
-	 * Verify Never Logged In matches missing, zero, and empty metadata.
+	 * Verify one-day not-purchased filtering.
 	 *
 	 * @return void
 	 */
-	public function test_never_logged_in_filter_is_defensive(): void {
+	public function test_not_one_day_purchase_filter_adds_meta_query(): void {
 
-		$_GET['shurloc_last_login'] = 'never';
+		$_GET['shurloc_last_purchase'] = 'not-1';
 
 		$query = new WP_User_Query();
 
@@ -374,22 +342,10 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertSame(
 			array(
 				array(
-					'relation' => 'OR',
-					array(
-						'key'     => Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
-						'compare' => 'NOT EXISTS',
-					),
-					array(
-						'key'     => Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
-						'value'   => 0,
-						'compare' => '=',
-						'type'    => 'NUMERIC',
-					),
-					array(
-						'key'     => Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
-						'value'   => '',
-						'compare' => '=',
-					),
+					'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
+					'value'   => 913600,
+					'compare' => '<',
+					'type'    => 'NUMERIC',
 				),
 			),
 			$query->get( 'meta_query' )
@@ -397,13 +353,13 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify Never Active matches missing, zero, and empty metadata.
+	 * Verify seven-day not-purchased filtering.
 	 *
 	 * @return void
 	 */
-	public function test_never_active_filter_is_defensive(): void {
+	public function test_not_seven_day_purchase_filter_adds_meta_query(): void {
 
-		$_GET['shurloc_last_activity'] = 'never';
+		$_GET['shurloc_last_purchase'] = 'not-7';
 
 		$query = new WP_User_Query();
 
@@ -414,25 +370,118 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		self::assertIsArray( $meta_query );
 
 		self::assertSame(
-			'OR',
-			$meta_query[0]['relation']
+			'<',
+			$meta_query[0]['compare']
 		);
 
 		self::assertSame(
-			Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
-			$meta_query[0][0]['key']
+			395200,
+			$meta_query[0]['value']
 		);
 	}
 
 	/**
-	 * Verify Last Login and Last Activity filters are combined with AND.
+	 * Verify thirty-day not-purchased filtering.
 	 *
 	 * @return void
 	 */
-	public function test_login_and_activity_filters_are_combined(): void {
+	public function test_not_thirty_day_purchase_filter_adds_meta_query(): void {
 
-		$_GET['shurloc_last_login']    = '7';
-		$_GET['shurloc_last_activity'] = '1';
+		$GLOBALS['shurloc_test_time'] = 3_000_000;
+
+		$_GET['shurloc_last_purchase'] = 'not-30';
+
+		$query = new WP_User_Query();
+
+		$this->filters->modify_user_query( $query );
+
+		$meta_query = $query->get( 'meta_query' );
+
+		self::assertIsArray( $meta_query );
+
+		self::assertSame(
+			408000,
+			$meta_query[0]['value']
+		);
+
+		self::assertSame(
+			'<',
+			$meta_query[0]['compare']
+		);
+	}
+
+	/**
+	 * Verify Never Purchased matches missing, zero, and empty metadata.
+	 *
+	 * @return void
+	 */
+	public function test_never_purchased_filter_is_defensive(): void {
+
+		$_GET['shurloc_last_purchase'] = 'never';
+
+		$query = new WP_User_Query();
+
+		$this->filters->modify_user_query( $query );
+
+		self::assertSame(
+			array(
+				array(
+					'relation' => 'OR',
+					array(
+						'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
+						'compare' => 'NOT EXISTS',
+					),
+					array(
+						'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
+						'value'   => 0,
+						'compare' => '=',
+						'type'    => 'NUMERIC',
+					),
+					array(
+						'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
+						'value'   => '',
+						'compare' => '=',
+					),
+				),
+			),
+			$query->get( 'meta_query' )
+		);
+	}
+
+	/**
+	 * Verify order status filtering.
+	 *
+	 * @return void
+	 */
+	public function test_order_status_filter_adds_meta_query(): void {
+
+		$_GET['shurloc_last_order_status'] = 'completed';
+
+		$query = new WP_User_Query();
+
+		$this->filters->modify_user_query( $query );
+
+		self::assertSame(
+			array(
+				array(
+					'key'     => Shurloc_User_Purchase_Service::LAST_PURCHASE_STATUS_META_KEY,
+					'value'   => 'completed',
+					'compare' => '=',
+				),
+			),
+			$query->get( 'meta_query' )
+		);
+	}
+
+	/**
+	 * Verify purchase and order status filters are combined with AND.
+	 *
+	 * @return void
+	 */
+	public function test_purchase_and_status_filters_are_combined(): void {
+
+		$_GET['shurloc_last_purchase']     = '30';
+		$_GET['shurloc_last_order_status'] = 'processing';
 
 		$query = new WP_User_Query();
 
@@ -453,12 +502,12 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		);
 
 		self::assertSame(
-			Shurloc_User_Activity_Service::LAST_LOGIN_META_KEY,
+			Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
 			$meta_query[0]['key']
 		);
 
 		self::assertSame(
-			Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
+			Shurloc_User_Purchase_Service::LAST_PURCHASE_STATUS_META_KEY,
 			$meta_query[1]['key']
 		);
 	}
@@ -470,7 +519,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	 */
 	public function test_existing_meta_query_is_preserved(): void {
 
-		$_GET['shurloc_last_activity'] = '7';
+		$_GET['shurloc_last_purchase'] = '7';
 
 		$query = new WP_User_Query(
 			array(
@@ -496,7 +545,7 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 		);
 
 		self::assertSame(
-			Shurloc_User_Activity_Service::LAST_ACTIVITY_META_KEY,
+			Shurloc_User_Purchase_Service::LAST_PURCHASE_META_KEY,
 			$meta_query[1]['key']
 		);
 
@@ -507,13 +556,31 @@ final class ShurlocUserActivityFiltersTest extends TestCase {
 	}
 
 	/**
-	 * Verify invalid request values are ignored.
+	 * Verify an invalid purchase filter is ignored.
 	 *
 	 * @return void
 	 */
-	public function test_invalid_filter_value_is_ignored(): void {
+	public function test_invalid_purchase_filter_is_ignored(): void {
 
-		$_GET['shurloc_last_login'] = 'invalid';
+		$_GET['shurloc_last_purchase'] = 'invalid';
+
+		$query = new WP_User_Query();
+
+		$this->filters->modify_user_query( $query );
+
+		self::assertNull(
+			$query->get( 'meta_query' )
+		);
+	}
+
+	/**
+	 * Verify an invalid order status filter is ignored.
+	 *
+	 * @return void
+	 */
+	public function test_invalid_order_status_filter_is_ignored(): void {
+
+		$_GET['shurloc_last_order_status'] = 'not-a-status';
 
 		$query = new WP_User_Query();
 

@@ -30,6 +30,12 @@ function shurloc_customer_tools_bootstrap(): void {
 	$autoloader->register();
 
 	/**
+	 * Helpers.
+	 */
+
+	$relative_time_formatter = new Shurloc_Relative_Time_Formatter();
+
+	/**
 	 * Admin page.
 	 */
 
@@ -47,17 +53,29 @@ function shurloc_customer_tools_bootstrap(): void {
 
 	$user_activity_service = new Shurloc_User_Activity_Service();
 
-	$activity_time_formatter = new Shurloc_Activity_Time_Formatter();
+	$user_purchase_service = new Shurloc_User_Purchase_Service();
 
 	$user_activity_columns = new Shurloc_User_Activity_Columns(
-		time_formatter: $activity_time_formatter,
+		time_formatter: $relative_time_formatter,
 	);
+
+	$user_purchase_columns = new Shurloc_User_Purchase_Columns(
+		time_formatter: $relative_time_formatter,
+	);
+
+	$user_filters = new Shurloc_User_Filters();
 
 	$user_activity_filters = new Shurloc_User_Activity_Filters();
 
+	$user_purchase_filters = new Shurloc_User_Purchase_Filters();
+
 	$user_activity_service->register();
+	$user_purchase_service->register();
 	$user_activity_columns->register();
+	$user_purchase_columns->register();
+	$user_filters->register();
 	$user_activity_filters->register();
+	$user_purchase_filters->register();
 }
 
 add_action(
