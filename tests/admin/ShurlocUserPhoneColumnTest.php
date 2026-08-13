@@ -9,6 +9,7 @@ declare( strict_types=1 );
 
 namespace Shurloc\CustomerTools;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -199,14 +200,19 @@ final class ShurlocUserPhoneColumnTest extends TestCase {
 	}
 
 	/**
-	 * Verify surrounding whitespace is removed from phone metadata.
+	 * Verify United States phone numbers are normalized for display.
 	 *
+	 * @param string $phone          Stored phone number.
+	 * @param string $expected_phone Expected display phone number.
 	 * @return void
 	 */
-	public function test_phone_whitespace_is_trimmed(): void {
+	#[DataProvider( 'us_phone_number_provider' )]
+	public function test_us_phone_number_is_normalized_for_display(
+		string $phone,
+		string $expected_phone
+	): void {
 
-		$GLOBALS['shurloc_test_user_meta'][101]['billing_phone'] =
-			'  (555) 123-4567  ';
+		$GLOBALS['shurloc_test_user_meta'][101]['billing_phone'] = $phone;
 
 		$result = $this->phone_column->render_column(
 			'',
@@ -215,40 +221,56 @@ final class ShurlocUserPhoneColumnTest extends TestCase {
 		);
 
 		self::assertStringContainsString(
-			'>(555) 123-4567</a>',
+			'>' . $expected_phone . '</a>',
 			$result
 		);
 	}
 
 	/**
-	 * Verify a United States country code is omitted from display.
+	 * Provide United States phone number formats.
 	 *
-	 * @return void
+	 * @return array<string,array{string,string}>
 	 */
-	public function test_leading_us_country_code_is_removed_from_display(): void {
+	public static function us_phone_number_provider(): array {
 
-		$GLOBALS['shurloc_test_user_meta'][101]['billing_phone'] =
-			'+1 (555) 123-4567';
-
-		$result = $this->phone_column->render_column(
-			'',
-			Shurloc_User_Phone_Column::PHONE_COLUMN,
-			101
-		);
-
-		self::assertStringContainsString(
-			'>(555) 123-4567</a>',
-			$result
-		);
-
-		self::assertStringNotContainsString(
-			'>+1 (555) 123-4567</a>',
-			$result
+		return array(
+			'digits only'              => array(
+				'9415386941',
+				'(941) 538-6941',
+			),
+			'hyphenated'               => array(
+				'941-538-6941',
+				'(941) 538-6941',
+			),
+			'dotted'                   => array(
+				'941.538.6941',
+				'(941) 538-6941',
+			),
+			'already formatted'        => array(
+				'(941) 538-6941',
+				'(941) 538-6941',
+			),
+			'leading one with hyphens' => array(
+				'1-941-538-6941',
+				'(941) 538-6941',
+			),
+			'leading plus one'         => array(
+				'+1 941 538 6941',
+				'(941) 538-6941',
+			),
+			'eleven digits'            => array(
+				'19415386941',
+				'(941) 538-6941',
+			),
+			'surrounding whitespace'   => array(
+				'  9415386941  ',
+				'(941) 538-6941',
+			),
 		);
 	}
 
 	/**
-	 * Verify the full international number is preserved in the tel URI.
+	 * Verify the full United States number is preserved in the tel URI.
 	 *
 	 * @return void
 	 */
@@ -292,11 +314,11 @@ final class ShurlocUserPhoneColumnTest extends TestCase {
 	}
 
 	/**
-	 * Verify a non-US international phone number keeps its country code.
+	 * Verify a non-US international phone number is preserved for display.
 	 *
 	 * @return void
 	 */
-	public function test_non_us_country_code_is_preserved_for_display_and_uri(): void {
+	public function test_non_us_phone_number_is_preserved_for_display(): void {
 
 		$GLOBALS['shurloc_test_user_meta'][101]['billing_phone'] =
 			'+44 20 7123 4567';
@@ -310,6 +332,23 @@ final class ShurlocUserPhoneColumnTest extends TestCase {
 		self::assertStringContainsString(
 			'>+44 20 7123 4567</a>',
 			$result
+		);
+	}
+
+	/**
+	 * Verify a non-US international phone number is normalized for the tel URI.
+	 *
+	 * @return void
+	 */
+	public function test_non_us_phone_number_is_normalized_for_tel_uri(): void {
+
+		$GLOBALS['shurloc_test_user_meta'][101]['billing_phone'] =
+			'+44 20 7123 4567';
+
+		$result = $this->phone_column->render_column(
+			'',
+			Shurloc_User_Phone_Column::PHONE_COLUMN,
+			101
 		);
 
 		self::assertStringContainsString(
@@ -352,7 +391,7 @@ final class ShurlocUserPhoneColumnTest extends TestCase {
 	public function test_phone_display_is_escaped(): void {
 
 		$GLOBALS['shurloc_test_user_meta'][101]['billing_phone'] =
-			'(555) 123-4567<script>alert(1)</script>';
+			'+44 20 7123 4567<script>alert(1)</script>';
 
 		$result = $this->phone_column->render_column(
 			'',

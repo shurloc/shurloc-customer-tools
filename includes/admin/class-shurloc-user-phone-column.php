@@ -141,8 +141,8 @@ final class Shurloc_User_Phone_Column {
 	/**
 	 * Format a phone number for display.
 	 *
-	 * Removes a leading United States country code while preserving the
-	 * remaining formatting stored in user metadata.
+	 * Formats United States phone numbers consistently while preserving
+	 * unrecognized or international phone numbers as originally entered.
 	 *
 	 * @param string $phone Phone number.
 	 * @return string
@@ -153,13 +153,33 @@ final class Shurloc_User_Phone_Column {
 
 		$phone = trim( $phone );
 
-		if ( str_starts_with( $phone, '+1' ) ) {
-			$phone = ltrim(
-				substr( $phone, 2 )
-			);
+		$digits = preg_replace(
+			'/\D+/',
+			'',
+			$phone
+		);
+
+		if ( null === $digits ) {
+			return $phone;
 		}
 
-		return $phone;
+		if (
+		11 === strlen( $digits ) &&
+		'1' === $digits[0]
+		) {
+			$digits = substr( $digits, 1 );
+		}
+
+		if ( 10 !== strlen( $digits ) ) {
+			return $phone;
+		}
+
+		return sprintf(
+			'(%s) %s-%s',
+			substr( $digits, 0, 3 ),
+			substr( $digits, 3, 3 ),
+			substr( $digits, 6, 4 )
+		);
 	}
 
 	/**
