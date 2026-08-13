@@ -41,6 +41,8 @@ require_once __DIR__ . '/stubs/namespaced-functions.php';
 require_once __DIR__ . '/stubs/wordpress-functions.php';
 require_once __DIR__ . '/stubs/woocommerce-functions.php';
 
+require_once dirname( __DIR__ ) . '/includes/constants.php';
+
 require_once __DIR__ . '/doubles/wp-user.php';
 require_once __DIR__ . '/doubles/wp-user-query.php';
 require_once __DIR__ . '/doubles/wc-product.php';

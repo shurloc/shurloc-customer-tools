@@ -137,3 +137,36 @@ function wc_get_order(
 
 	return $order;
 }
+
+
+if ( ! function_exists( 'wc_attribute_label' ) ) {
+
+	/**
+	 * Get a display label for a WooCommerce attribute.
+	 *
+	 * Test replacement for wc_attribute_label().
+	 *
+	 * @param string $name Attribute name.
+	 * @return string
+	 */
+	function wc_attribute_label(
+		string $name
+	): string {
+
+		$name = str_replace(
+			array(
+				'pa_',
+				'_',
+				'-',
+			),
+			array(
+				'',
+				' ',
+				' ',
+			),
+			$name
+		);
+
+		return ucwords( $name );
+	}
+}
