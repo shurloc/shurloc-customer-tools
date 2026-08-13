@@ -389,8 +389,22 @@ final class Shurloc_User_Activity_Filters {
 
 		if ( self::FILTER_NEVER === $filter ) {
 			return array(
-				'key'     => $meta_key,
-				'compare' => 'NOT EXISTS',
+				'relation' => 'OR',
+				array(
+					'key'     => $meta_key,
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => $meta_key,
+					'value'   => 0,
+					'compare' => '=',
+					'type'    => 'NUMERIC',
+				),
+				array(
+					'key'     => $meta_key,
+					'value'   => '',
+					'compare' => '=',
+				),
 			);
 		}
 
