@@ -64,6 +64,13 @@ final class Shurloc_User_Activity_Filters {
 	private const FILTER_NEVER = 'never';
 
 	/**
+	 * Number of seconds in one day.
+	 *
+	 * @var int
+	 */
+	private const DAY_IN_SECONDS = 86400;
+
+	/**
 	 * Register WordPress hooks.
 	 *
 	 * @return void
@@ -95,10 +102,6 @@ final class Shurloc_User_Activity_Filters {
 	public function render_filters(): void {
 
 		global $pagenow;
-
-		if ( 'users.php' !== $pagenow ) {
-			return;
-		}
 
 		$last_login_filter = $this->get_request_filter(
 			self::LAST_LOGIN_FILTER
@@ -279,12 +282,6 @@ final class Shurloc_User_Activity_Filters {
 		WP_User_Query $query
 	): void {
 
-		global $pagenow;
-
-		if ( 'users.php' !== $pagenow ) {
-			return;
-		}
-
 		$this->apply_sorting( query: $query );
 		$this->apply_filters( query: $query );
 	}
@@ -422,7 +419,7 @@ final class Shurloc_User_Activity_Filters {
 			return null;
 		}
 
-		$minimum_timestamp = time() - ( $days * DAY_IN_SECONDS );
+		$minimum_timestamp = time() - ( $days * self::DAY_IN_SECONDS );
 
 		return array(
 			'key'     => $meta_key,

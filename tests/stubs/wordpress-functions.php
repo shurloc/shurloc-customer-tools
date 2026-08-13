@@ -345,3 +345,165 @@ if ( ! function_exists( 'esc_html' ) ) {
 		);
 	}
 }
+
+
+if ( ! function_exists( 'sanitize_key' ) ) {
+
+	/**
+	 * Sanitize a test key.
+	 *
+	 * @param string $key Key.
+	 * @return string
+	 */
+	function sanitize_key(
+		string $key
+	): string {
+
+		$key = strtolower( $key );
+
+		return preg_replace(
+			'/[^a-z0-9_\-]/',
+			'',
+			$key
+		) ?? '';
+	}
+}
+
+
+if ( ! function_exists( 'wp_unslash' ) ) {
+
+	/**
+	 * Remove slashes from a test value.
+	 *
+	 * @param string $value Value.
+	 * @return string
+	 */
+	function wp_unslash(
+		string $value
+	): string {
+
+		return stripslashes( $value );
+	}
+}
+
+
+if ( ! function_exists( 'esc_attr' ) ) {
+
+	/**
+	 * Escape an HTML attribute.
+	 *
+	 * @param string $text Text.
+	 * @return string
+	 */
+	function esc_attr(
+		string $text
+	): string {
+
+		return htmlspecialchars(
+			$text,
+			ENT_QUOTES | ENT_SUBSTITUTE,
+			'UTF-8'
+		);
+	}
+}
+
+
+if ( ! function_exists( 'esc_html__' ) ) {
+
+	/**
+	 * Translate and escape text.
+	 *
+	 * @param string $text   Text.
+	 * @param string $domain Text domain.
+	 * @return string
+	 */
+	function esc_html__(
+		string $text,
+		string $domain = 'default'
+	): string {
+
+		unset( $domain );
+
+		return htmlspecialchars(
+			$text,
+			ENT_QUOTES | ENT_SUBSTITUTE,
+			'UTF-8'
+		);
+	}
+}
+
+
+if ( ! function_exists( 'selected' ) ) {
+
+	/**
+	 * Render a selected HTML attribute.
+	 *
+	 * @param mixed $selected Selected value.
+	 * @param mixed $current  Current value.
+	 * @param bool  $display  Whether to echo the result.
+	 * @return string
+	 */
+	function selected(
+		$selected,
+		$current = true,
+		bool $display = true
+	): string {
+
+		$result = $selected === $current
+			? ' selected="selected"'
+			: '';
+
+		if ( $display ) {
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed test-only HTML attribute.
+			echo $result;
+		}
+
+		return $result;
+	}
+
+	if ( ! function_exists( 'submit_button' ) ) {
+
+		/**
+		 * Render a submit button.
+		 *
+		 * Test replacement for submit_button().
+		 *
+		 * @param string $text             Button text.
+		 * @param string $type             Button type.
+		 * @param string $name             Button name.
+		 * @param bool   $wrap             Whether to wrap the button.
+		 * @param array  $other_attributes Additional attributes.
+		 * @return void
+		 */
+		function submit_button(
+			string $text = 'Save Changes',
+			string $type = 'primary',
+			string $name = 'submit',
+			bool $wrap = true,
+			array $other_attributes = array()
+		): void {
+
+			unset( $other_attributes );
+
+			$button = sprintf(
+				'<input type="submit" name="%s" class="button %s" value="%s" />',
+				esc_attr( $name ),
+				esc_attr( 'button-' . $type ),
+				esc_attr( $text )
+			);
+
+			if ( $wrap ) {
+				printf(
+					'<p class="submit">%s</p>',
+					// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Test-only HTML generated from escaped values.
+					$button
+				);
+
+				return;
+			}
+
+			// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Test-only HTML generated from escaped values.
+			echo $button;
+		}
+	}
+}
