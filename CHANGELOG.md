@@ -1,5 +1,56 @@
 # Changelog
 
+## [0.6.0] - 2026-08-13
+
+### Added
+
+- Added persistent cart snapshot tracking for logged-in WooCommerce customers.
+- Added cart snapshot metadata for item count, cart contents total, cart contents, last update time, expiration time, and snapshot version.
+- Added detailed cart item tracking including:
+  - Product and variation IDs
+  - Product name and SKU
+  - Quantity
+  - Line subtotal and line total
+  - Variation attributes
+- Added automatic 30-day cart snapshot expiration timestamps.
+- Added automatic cart snapshot cleanup when a customer's cart becomes empty or an order is processed.
+- Added a **Cart** column to the WordPress Users screen.
+- Added clickable cart details panels showing product quantities, product links, SKUs, and variation attributes.
+- Added dedicated admin CSS and JavaScript for Cart column presentation and panel interaction.
+- Added PHPUnit coverage for:
+  - Cart snapshot creation and updates
+  - Cart item normalization and quantity totals
+  - Cart contents totals and expiration timestamps
+  - Empty-cart and checkout cleanup
+  - Guest and logged-out user handling
+  - Cart column registration and rendering
+  - Product and variation links
+  - Legacy seeded cart snapshot compatibility
+  - Variation attribute rendering
+  - Cart column asset loading
+
+### Changed
+
+- Extended the WordPress Users screen with current customer cart information.
+- Preserved compatibility with previously seeded cart snapshots that do not contain variation attribute metadata.
+- Moved cart detail presentation from inline snippet assets to dedicated plugin CSS and JavaScript files.
+
+### Internal Improvements
+
+- Added a dedicated cart tracking service for maintaining customer cart snapshots.
+- Added a dedicated Users table Cart column class for cart presentation.
+- Centralized cart metadata keys and snapshot versioning in the cart service.
+- Added WooCommerce and WordPress test doubles for carts, orders, product attributes, permalinks, and admin asset enqueueing.
+- Kept cart tracking, cart persistence, and admin presentation responsibilities separated into focused classes.
+
+### Testing
+
+- Added PHPUnit coverage for the complete customer cart tracking and Users-screen Cart column features.
+- Added regression coverage for the existing seeded cart metadata schema.
+- Added coverage for cart cleanup after checkout and when carts become empty.
+- Verified cart tracking and Cart column behavior on staging.
+- Verified PHPUnit, PHPCS, and PHPStan checks pass.
+
 ## [0.5.0] - 2026-08-13
 
 ### Changed
