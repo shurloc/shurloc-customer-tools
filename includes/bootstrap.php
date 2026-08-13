@@ -53,10 +53,13 @@ function shurloc_customer_tools_bootstrap(): void {
 		time_formatter: $activity_time_formatter,
 	);
 
+	$user_filters = new Shurloc_User_Filters();
+
 	$user_activity_filters = new Shurloc_User_Activity_Filters();
 
 	$user_activity_service->register();
 	$user_activity_columns->register();
+	$user_filters->register();
 	$user_activity_filters->register();
 }
 
