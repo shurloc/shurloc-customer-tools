@@ -380,7 +380,7 @@ final class Shurloc_User_Activity_Filters {
 	 *
 	 * @param string $meta_key User meta key.
 	 * @param string $filter   Selected filter.
-	 * @return array<string,mixed>|null
+	 * @return array<string|int,mixed>|null
 	 */
 	private function build_meta_query_clause(
 		string $meta_key,
@@ -388,7 +388,13 @@ final class Shurloc_User_Activity_Filters {
 	): ?array {
 
 		if ( self::FILTER_NEVER === $filter ) {
-			return array(
+
+			/**
+			 * Never-activity meta query clause.
+			 *
+			 * @var array<string|int,mixed> $clause
+			 */
+			$clause = array(
 				'relation' => 'OR',
 				array(
 					'key'     => $meta_key,
@@ -406,6 +412,8 @@ final class Shurloc_User_Activity_Filters {
 					'compare' => '=',
 				),
 			);
+
+			return $clause;
 		}
 
 		$days = $this->get_filter_days( $filter );
