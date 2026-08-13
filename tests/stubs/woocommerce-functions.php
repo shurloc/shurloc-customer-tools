@@ -8,6 +8,12 @@
 declare( strict_types=1 );
 
 
+/**
+ * WooCommerce instance used by tests.
+ */
+$GLOBALS['shurloc_test_woocommerce'] = null;
+
+
 if ( ! function_exists( 'wc_get_order_status_name' ) ) {
 
 	/**
@@ -73,5 +79,28 @@ if ( ! function_exists( 'wc_get_order_statuses' ) ) {
 			'wc-refunded'   => 'Refunded',
 			'wc-failed'     => 'Failed',
 		);
+	}
+}
+
+
+if ( ! function_exists( 'WC' ) ) {
+
+	/**
+	 * Get the WooCommerce test instance.
+	 *
+	 * Test replacement for WC().
+	 *
+	 * @return WooCommerce
+	 */
+	// phpcs:ignore WordPress.NamingConventions.ValidFunctionName.FunctionNameInvalid, Squiz.Commenting.FunctionComment.Missing -- Matches WooCommerce's WC() function.
+	function WC(): WooCommerce {
+
+		if (
+			! $GLOBALS['shurloc_test_woocommerce'] instanceof WooCommerce
+		) {
+			$GLOBALS['shurloc_test_woocommerce'] = new WooCommerce();
+		}
+
+		return $GLOBALS['shurloc_test_woocommerce'];
 	}
 }
