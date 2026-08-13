@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.5.0] - 2026-08-13
+
+### Changed
+
+- Removed the Jetpack **WordPress.com account** column from the WordPress Users screen.
+- Reclaimed Users table space for customer information relevant to WooCommerce administration.
+- Preserved all other Users table columns and their existing order.
+
+### Internal Improvements
+
+- Added a dedicated Users table column customization class.
+- Applied column cleanup after third-party columns have been registered.
+- Kept general Users table customization separate from feature-specific customer columns.
+
+### Testing
+
+- Added PHPUnit coverage for:
+  - Users table column customization registration
+  - WordPress.com account column removal
+  - Preservation of unrelated columns
+  - Preservation of column ordering
+  - Handling when the Jetpack column is not present
+- Verified PHPUnit, PHPCS, and PHPStan checks pass.
+
 ## [0.4.0] - 2026-08-13
 
 ### Added
