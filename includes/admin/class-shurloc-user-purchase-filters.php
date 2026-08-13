@@ -240,7 +240,7 @@ final class Shurloc_User_Purchase_Filters {
 				?>
 			</option>
 		</select>
-
+<!--
 		<label
 			class="screen-reader-text"
 			for="<?php echo esc_attr( self::LAST_ORDER_STATUS_FILTER ); ?>"
@@ -277,7 +277,7 @@ final class Shurloc_User_Purchase_Filters {
 
 			<?php endforeach; ?>
 		</select>
-
+-->
 		<?php
 	}
 
