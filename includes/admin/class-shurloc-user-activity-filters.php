@@ -78,13 +78,12 @@ final class Shurloc_User_Activity_Filters {
 	public function register(): void {
 
 		add_action(
-			'manage_users_extra_tablenav',
+			Shurloc_User_Filters::FILTER_CONTROLS_ACTION,
 			array(
 				$this,
 				'render_filters',
 			),
-			10,
-			1
+			10
 		);
 
 		add_action(
@@ -97,22 +96,14 @@ final class Shurloc_User_Activity_Filters {
 	}
 
 	/**
-	 * Render activity filters on the Users screen.
+	 * Render activity filter controls.
 	 *
-	 * The manage_users_extra_tablenav hook fires for both the top and bottom
-	 * controls. Render the filters only at the top to avoid submitting
-	 * duplicate named fields with conflicting values.
+	 * The shared Shurloc_User_Filters coordinator owns the surrounding
+	 * toolbar container and Filter button.
 	 *
-	 * @param string $which Controls location. Either top or bottom.
 	 * @return void
 	 */
-	public function render_filters(
-		string $which
-	): void {
-
-		if ( 'top' !== $which ) {
-			return;
-		}
+	public function render_filters(): void {
 
 		$last_login_filter = $this->get_request_filter(
 			self::LAST_LOGIN_FILTER
@@ -123,169 +114,153 @@ final class Shurloc_User_Activity_Filters {
 		);
 		?>
 
-		<div class="alignleft actions">
-
-			<label
-				class="screen-reader-text"
-				for="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
-			>
-				<?php
-				echo esc_html__(
-					'Filter by last login',
-					'shurloc-customer-tools'
-				);
-				?>
-			</label>
-
-			<select
-				name="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
-				id="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
-			>
-				<option value="">
-					<?php
-					echo esc_html__(
-						'All Last Logins',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_ONE_DAY ); ?>"
-					<?php selected( $last_login_filter, self::FILTER_ONE_DAY ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Logged In Within 1 Day',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_SEVEN_DAYS ); ?>"
-					<?php selected( $last_login_filter, self::FILTER_SEVEN_DAYS ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Logged In Within 7 Days',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_THIRTY_DAYS ); ?>"
-					<?php selected( $last_login_filter, self::FILTER_THIRTY_DAYS ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Logged In Within 30 Days',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_NEVER ); ?>"
-					<?php selected( $last_login_filter, self::FILTER_NEVER ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Never Logged In',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-			</select>
-
-			<label
-				class="screen-reader-text"
-				for="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
-			>
-				<?php
-				echo esc_html__(
-					'Filter by last activity',
-					'shurloc-customer-tools'
-				);
-				?>
-			</label>
-
-			<select
-				name="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
-				id="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
-			>
-				<option value="">
-					<?php
-					echo esc_html__(
-						'All Last Activity',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_ONE_DAY ); ?>"
-					<?php selected( $last_activity_filter, self::FILTER_ONE_DAY ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Active Within 1 Day',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_SEVEN_DAYS ); ?>"
-					<?php selected( $last_activity_filter, self::FILTER_SEVEN_DAYS ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Active Within 7 Days',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_THIRTY_DAYS ); ?>"
-					<?php selected( $last_activity_filter, self::FILTER_THIRTY_DAYS ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Active Within 30 Days',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-
-				<option
-					value="<?php echo esc_attr( self::FILTER_NEVER ); ?>"
-					<?php selected( $last_activity_filter, self::FILTER_NEVER ); ?>
-				>
-					<?php
-					echo esc_html__(
-						'Never Active',
-						'shurloc-customer-tools'
-					);
-					?>
-				</option>
-			</select>
-
+		<label
+			class="screen-reader-text"
+			for="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
+		>
 			<?php
-			submit_button(
-				__(
-					'Filter',
-					'shurloc-customer-tools'
-				),
-				'secondary',
-				'filter_action',
-				false
+			echo esc_html__(
+				'Filter by last login',
+				'shurloc-customer-tools'
 			);
 			?>
+		</label>
 
-		</div>
+		<select
+			name="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
+			id="<?php echo esc_attr( self::LAST_LOGIN_FILTER ); ?>"
+		>
+			<option value="">
+				<?php
+				echo esc_html__(
+					'All Last Logins',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_ONE_DAY ); ?>"
+				<?php selected( $last_login_filter, self::FILTER_ONE_DAY ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Logged In Within 1 Day',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_SEVEN_DAYS ); ?>"
+				<?php selected( $last_login_filter, self::FILTER_SEVEN_DAYS ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Logged In Within 7 Days',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_THIRTY_DAYS ); ?>"
+				<?php selected( $last_login_filter, self::FILTER_THIRTY_DAYS ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Logged In Within 30 Days',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_NEVER ); ?>"
+				<?php selected( $last_login_filter, self::FILTER_NEVER ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Never Logged In',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+		</select>
+
+		<label
+			class="screen-reader-text"
+			for="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
+		>
+			<?php
+			echo esc_html__(
+				'Filter by last activity',
+				'shurloc-customer-tools'
+			);
+			?>
+		</label>
+
+		<select
+			name="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
+			id="<?php echo esc_attr( self::LAST_ACTIVITY_FILTER ); ?>"
+		>
+			<option value="">
+				<?php
+				echo esc_html__(
+					'All Last Activity',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_ONE_DAY ); ?>"
+				<?php selected( $last_activity_filter, self::FILTER_ONE_DAY ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Active Within 1 Day',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_SEVEN_DAYS ); ?>"
+				<?php selected( $last_activity_filter, self::FILTER_SEVEN_DAYS ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Active Within 7 Days',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_THIRTY_DAYS ); ?>"
+				<?php selected( $last_activity_filter, self::FILTER_THIRTY_DAYS ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Active Within 30 Days',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+
+			<option
+				value="<?php echo esc_attr( self::FILTER_NEVER ); ?>"
+				<?php selected( $last_activity_filter, self::FILTER_NEVER ); ?>
+			>
+				<?php
+				echo esc_html__(
+					'Never Active',
+					'shurloc-customer-tools'
+				);
+				?>
+			</option>
+		</select>
 
 		<?php
 	}
