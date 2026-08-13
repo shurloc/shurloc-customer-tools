@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.4.0] - 2026-08-13
+
+### Added
+
+- Added a **Phone** column to the WordPress Users screen.
+- Added customer phone numbers from WooCommerce billing metadata.
+- Added clickable `tel:` links for customer phone numbers.
+- Added consistent display formatting for United States phone numbers.
+- Added support for common United States phone number formats, including:
+  - 10-digit numbers
+  - 11-digit numbers with a leading `1`
+  - Numbers with a `+1` country code
+  - Hyphenated, dotted, parenthesized, and unformatted numbers
+- Added normalized phone numbers for `tel:` links while preserving international country codes.
+- Added defensive handling of missing and unrecognized phone numbers.
+- Added PHPUnit coverage for:
+  - Phone column registration
+  - Phone column positioning
+  - Missing phone numbers
+  - United States phone number normalization
+  - International phone numbers
+  - `tel:` URI normalization
+  - Phone number escaping
+  - Unrecognized phone values
+
+### Changed
+
+- Positioned the **Phone** column immediately after the **Email** column on the WordPress Users screen.
+- Standardized recognizable United States phone numbers as `(555) 123-4567` for display.
+- Preserved non-U.S. international phone number formatting when displaying customer data.
+
+### Internal Improvements
+
+- Added a dedicated Users table column class for customer phone numbers.
+- Kept phone number display normalization separate from stored WooCommerce `billing_phone` metadata.
+- Separated human-readable phone formatting from `tel:` URI normalization.
+
+### Testing
+
+- Added PHPUnit coverage for the complete customer phone column feature.
+- Added data-driven coverage for multiple United States phone number formats.
+- Added coverage for international numbers and malformed phone values.
+- Verified PHPUnit, PHPCS, and PHPStan checks pass.
+
 ## [0.3.0] - 2026-08-13
 
 ### Added
