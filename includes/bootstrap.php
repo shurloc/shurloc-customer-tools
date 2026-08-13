@@ -78,8 +78,12 @@ function shurloc_customer_tools_bootstrap(): void {
 	$user_purchase_filters->register();
 
 	/**
-	 * Add columns to the user table.
+	 * Manage other columns in the user table.
 	 */
+
+	$user_columns = new Shurloc_User_Columns();
+
+	$user_columns->register();
 
 	$user_phone_column = new Shurloc_User_Phone_Column();
 
