@@ -507,3 +507,39 @@ if ( ! function_exists( 'selected' ) ) {
 		}
 	}
 }
+
+
+if ( ! function_exists( 'wp_strip_all_tags' ) ) {
+
+	/**
+	 * Strip all HTML tags from a string.
+	 *
+	 * Test replacement for wp_strip_all_tags().
+	 *
+	 * @param string $text          Text containing HTML.
+	 * @param bool   $remove_breaks Whether to remove line breaks and tabs.
+	 * @return string
+	 */
+	function wp_strip_all_tags(
+		string $text,
+		bool $remove_breaks = false
+	): string {
+
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- Test double for wp_strip_all_tags().
+		$text = strip_tags( $text );
+
+		if ( $remove_breaks ) {
+			$text = preg_replace(
+				'/[\r\n\t ]+/',
+				' ',
+				$text
+			);
+
+			if ( null === $text ) {
+				return '';
+			}
+		}
+
+		return trim( $text );
+	}
+}
