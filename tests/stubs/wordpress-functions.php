@@ -2,7 +2,7 @@
 /**
  * WordPress function test doubles.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );
@@ -951,5 +951,41 @@ if ( ! function_exists( 'trailingslashit' ) ) {
 			$value,
 			'/\\'
 		) . '/';
+	}
+}
+
+if ( ! function_exists( 'add_submenu_page' ) ) {
+	/**
+	 * Adds a submenu page.
+	 *
+	 * @param string          $parent_slug Parent menu slug.
+	 * @param string          $page_title  Page title.
+	 * @param string          $menu_title  Menu title.
+	 * @param string          $capability  Required capability.
+	 * @param string          $menu_slug   Menu slug.
+	 * @param callable|string $callback    Page callback.
+	 * @param int|null        $position    Menu position.
+	 * @return string Hook suffix.
+	 */
+	function add_submenu_page(
+		string $parent_slug,
+		string $page_title,
+		string $menu_title,
+		string $capability,
+		string $menu_slug,
+		callable|string $callback = '',
+		?int $position = null
+	): string {
+		$GLOBALS['shurloc_test_submenu_pages'][] = array(
+			'parent_slug' => $parent_slug,
+			'page_title'  => $page_title,
+			'menu_title'  => $menu_title,
+			'capability'  => $capability,
+			'menu_slug'   => $menu_slug,
+			'callback'    => $callback,
+			'position'    => $position,
+		);
+
+		return $parent_slug . '_page_' . $menu_slug;
 	}
 }

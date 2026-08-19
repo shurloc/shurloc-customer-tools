@@ -2,7 +2,7 @@
 /**
  * WordPress user test double.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 /**

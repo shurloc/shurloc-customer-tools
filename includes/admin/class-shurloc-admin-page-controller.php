@@ -4,7 +4,7 @@
  *
  * Provides admin tools for customer functions.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );
@@ -15,6 +15,8 @@ use Shurloc\Tools\Shurloc_Admin_Page_Interface;
 
 /**
  * Customer admin page controller.
+ *
+ * @disregard P1009 Undefined type 'Shurloc\Tools\Shurloc_Admin_Page_Interface'.
  */
 final class Shurloc_Admin_Page_Controller implements Shurloc_Admin_Page_Interface {
 
@@ -35,7 +37,7 @@ final class Shurloc_Admin_Page_Controller implements Shurloc_Admin_Page_Interfac
 
 		<div class="wrap">
 
-			<h1>Shur-Loc Customer Tools</h1>
+			<h1>Shur-loc Customer Tools</h1>
 
 			<p>
 				Utilities for customer administration.

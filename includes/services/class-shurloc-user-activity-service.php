@@ -5,7 +5,7 @@
  * Tracks user login and recent activity timestamps across the WordPress
  * frontend and administration area.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

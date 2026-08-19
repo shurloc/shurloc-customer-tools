@@ -5,7 +5,7 @@
  * Adds a Cart column to the WordPress Users table and renders a clickable
  * cart details panel for users with a stored cart snapshot.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

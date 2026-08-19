@@ -2,7 +2,7 @@
 /**
  * WooCommerce test double.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

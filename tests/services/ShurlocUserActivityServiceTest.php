@@ -2,7 +2,7 @@
 /**
  * Tests for the user activity service.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

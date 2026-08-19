@@ -2,7 +2,7 @@
 /**
  * Customer Tools admin menu.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );
@@ -17,7 +17,7 @@ use Shurloc\Tools\Shurloc_Admin_Page_Interface;
 final class Shurloc_Admin_Menu {
 
 	/**
-	 * Parent ShurLoc Tools menu slug.
+	 * Parent Shur-loc Tools menu slug.
 	 */
 	private const PARENT_MENU_SLUG = 'shurloc-tools';
 
@@ -40,6 +40,7 @@ final class Shurloc_Admin_Menu {
 	 * Customer page.
 	 *
 	 * @var Shurloc_Admin_Page_Interface
+	 * @disregard P1009 Undefined type 'Shurloc\Tools\Shurloc_Admin_Page_Interface'.
 	 */
 	private Shurloc_Admin_Page_Interface $customer_page;
 
@@ -47,6 +48,7 @@ final class Shurloc_Admin_Menu {
 	 * Constructor.
 	 *
 	 * @param Shurloc_Admin_Page_Interface $customer_page Customer page.
+	 * @disregard P1009 Undefined type 'Shurloc\Tools\Shurloc_Admin_Page_Interface'.
 	 */
 	public function __construct(
 		Shurloc_Admin_Page_Interface $customer_page
@@ -83,7 +85,7 @@ final class Shurloc_Admin_Menu {
 
 		add_submenu_page(
 			self::PARENT_MENU_SLUG,
-			'ShurLoc Customer Tools',
+			'Shur-loc Customer Tools',
 			'Customers',
 			self::CAPABILITY,
 			self::CUSTOMER_MENU_SLUG,

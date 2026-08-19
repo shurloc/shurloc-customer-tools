@@ -2,7 +2,7 @@
 /**
  * Namespaced functions for testing purposes.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

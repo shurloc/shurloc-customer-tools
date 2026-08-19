@@ -2,7 +2,7 @@
 /**
  * Tests for user purchase admin columns.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

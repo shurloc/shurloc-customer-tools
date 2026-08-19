@@ -4,7 +4,7 @@
  *
  * Tracks the most recent WooCommerce cart snapshot for logged-in users.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );
