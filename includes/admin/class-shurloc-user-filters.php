@@ -5,7 +5,7 @@
  * Renders the shared Shur-loc Customer Tools filter bar on the WordPress
  * Users screen.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

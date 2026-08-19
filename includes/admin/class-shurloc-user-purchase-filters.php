@@ -5,7 +5,7 @@
  * Adds Last Purchase and Last Order Status filters to the WordPress Users
  * screen and applies purchase filtering and sorting to user queries.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

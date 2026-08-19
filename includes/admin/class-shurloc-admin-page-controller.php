@@ -4,7 +4,7 @@
  *
  * Provides admin tools for customer functions.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

@@ -4,7 +4,7 @@
  *
  * Adds a Last Purchase column to the WordPress Users table.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

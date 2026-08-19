@@ -4,7 +4,7 @@
  *
  * Customizes columns displayed on the WordPress Users screen.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

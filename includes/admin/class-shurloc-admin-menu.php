@@ -2,7 +2,7 @@
 /**
  * Customer Tools admin menu.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

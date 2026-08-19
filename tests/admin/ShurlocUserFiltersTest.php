@@ -2,7 +2,7 @@
 /**
  * Tests for shared user admin filters.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

@@ -2,7 +2,7 @@
 /**
  * Tests for the user purchase service.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

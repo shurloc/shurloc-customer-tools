@@ -4,7 +4,7 @@
  *
  * Automatically loads classes, interfaces, and traits from the includes directory.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

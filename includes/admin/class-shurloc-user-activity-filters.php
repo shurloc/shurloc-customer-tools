@@ -5,7 +5,7 @@
  * Adds Last Login and Last Activity filters to the WordPress Users screen
  * and applies activity filtering and sorting to user queries.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

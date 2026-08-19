@@ -5,7 +5,7 @@
  * Formats timestamps for display in the WordPress
  * administration area.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

@@ -4,7 +4,7 @@
  *
  * Adds Last Login and Last Activity columns to the WordPress Users table.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

@@ -3,7 +3,7 @@
  *
  * Handles opening and closing cart detail panels on the Users screen.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 document.addEventListener( 'click', function ( event ) {

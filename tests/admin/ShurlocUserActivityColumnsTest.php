@@ -2,7 +2,7 @@
 /**
  * Tests for the user activity admin columns.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );

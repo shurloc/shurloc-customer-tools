@@ -5,7 +5,7 @@
  * Tracks the most recent qualifying WooCommerce purchase for registered
  * WordPress users.
  *
- * @package ShurLocCustomerTools
+ * @package ShurlocCustomerTools
  */
 
 declare( strict_types=1 );
