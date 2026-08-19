@@ -2,7 +2,7 @@
 /**
  * Shared user admin filters.
  *
- * Renders the shared ShurLoc Customer Tools filter bar on the WordPress
+ * Renders the shared Shur-loc Customer Tools filter bar on the WordPress
  * Users screen.
  *
  * @package ShurLocCustomerTools
@@ -15,7 +15,7 @@ namespace Shurloc\CustomerTools;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Coordinates ShurLoc Customer Tools user filters.
+ * Coordinates Shur-loc Customer Tools user filters.
  */
 final class Shurloc_User_Filters {
 
@@ -67,7 +67,7 @@ final class Shurloc_User_Filters {
 
 			<?php
 			/**
-			 * Render ShurLoc Customer Tools user filter controls.
+			 * Render Shur-loc Customer Tools user filter controls.
 			 *
 			 * Feature-specific filter classes should hook here and render
 			 * only their controls. This coordinator owns the surrounding

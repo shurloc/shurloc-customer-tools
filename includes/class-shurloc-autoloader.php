@@ -12,7 +12,7 @@ declare( strict_types=1 );
 namespace Shurloc\CustomerTools;
 
 /**
- * ShurLoc autoloader.
+ * Shur-loc autoloader.
  */
 final class Shurloc_Autoloader {
 
