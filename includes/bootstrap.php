@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+use Shurloc\Tools\Shurloc_Admin_Page_Interface;
+
 /**
  * Bootstrap the plugin.
  */
@@ -24,7 +26,7 @@ function shurloc_customer_tools_bootstrap(): void {
 	require_once SHURLOC_CUSTOMER_TOOLS_PATH . 'includes/class-shurloc-autoloader.php';
 
 	$autoloader = new Shurloc_Autoloader(
-		__DIR__
+		base_directory: __DIR__,
 	);
 
 	$autoloader->register();
@@ -39,54 +41,61 @@ function shurloc_customer_tools_bootstrap(): void {
 	 * Admin page.
 	 */
 
-	$customer_page = new Shurloc_Admin_Page_Controller();
+	/** Intelephense false positive.
+	 *
+	 * @disregard P1009 Undefined type 'Shurloc\Tools\Shurloc_Admin_Page_Interface'. */
+	if ( interface_exists( Shurloc_Admin_Page_Interface::class ) ) {
+		$customer_page = new Shurloc_Admin_Page_Controller();
 
-	$admin_page = new Shurloc_Admin_Menu(
-		customer_page: $customer_page
-	);
-
-	$admin_page->register();
+		$admin_page = new Shurloc_Admin_Menu(
+			customer_page: $customer_page,
+		);
+		$admin_page->register();
+	}
 
 	/**
 	 * User activity and purchase tracking.
 	 */
 
 	$user_activity_service = new Shurloc_User_Activity_Service();
+	$user_activity_service->register();
+
 	$user_purchase_service = new Shurloc_User_Purchase_Service();
-	$user_cart_service     = new Shurloc_User_Cart_Service();
+	$user_purchase_service->register();
+
+	$user_cart_service = new Shurloc_User_Cart_Service();
+	$user_cart_service->register();
 
 	$user_activity_columns = new Shurloc_User_Activity_Columns(
 		time_formatter: $relative_time_formatter,
 	);
+	$user_activity_columns->register();
+
 	$user_purchase_columns = new Shurloc_User_Purchase_Columns(
 		time_formatter: $relative_time_formatter,
 	);
-	$user_cart_column      = new Shurloc_User_Cart_Column();
-
-	$user_filters          = new Shurloc_User_Filters();
-	$user_activity_filters = new Shurloc_User_Activity_Filters();
-	$user_purchase_filters = new Shurloc_User_Purchase_Filters();
-
-	$user_activity_service->register();
-	$user_purchase_service->register();
-	$user_cart_service->register();
-
-	$user_activity_columns->register();
 	$user_purchase_columns->register();
+
+	$user_cart_column = new Shurloc_User_Cart_Column();
 	$user_cart_column->register();
 
+	$user_filters = new Shurloc_User_Filters();
 	$user_filters->register();
+
+	$user_activity_filters = new Shurloc_User_Activity_Filters();
 	$user_activity_filters->register();
+
+	$user_purchase_filters = new Shurloc_User_Purchase_Filters();
 	$user_purchase_filters->register();
 
 	/**
 	 * Manage other columns in the user table.
 	 */
 
-	$user_columns      = new Shurloc_User_Columns();
-	$user_phone_column = new Shurloc_User_Phone_Column();
-
+	$user_columns = new Shurloc_User_Columns();
 	$user_columns->register();
+
+	$user_phone_column = new Shurloc_User_Phone_Column();
 	$user_phone_column->register();
 }
 
