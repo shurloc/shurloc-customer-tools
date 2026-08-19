@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.6.1] - 2026-08-19
+
+### Internal Improvements
+
+- Changed package name from ShurLocCustomerTools to ShurlocCustomerTools.
+- Fixed branding in several files.
+- Cleaned up bootstrap.
+- Added guard against missing Shurloc_Admin_Page_Interface.
+
 ## [0.6.0] - 2026-08-13
 
 ### Added
