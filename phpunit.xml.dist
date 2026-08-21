@@ -11,7 +11,7 @@
     failOnWarning="true"
 >
     <testsuites>
-        <testsuite name="Shur-Loc Customer Tools">
+        <testsuite name="Shur-loc Customer Tools">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
