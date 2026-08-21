@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Name:       Shur-Loc Customer Tools
+ * Plugin Name:       Shur-loc Customer Tools
  * Plugin URI:        https://shurloc.com/
- * Description:       Customer tools for the Shur-Loc website.
+ * Description:       Customer tools for the Shur-loc website.
  * Version:           0.6.1
  * Requires at least: 7.0
  * Requires PHP:      8.4
  * Requires Plugins:  woocommerce, shurloc-tools
- * Author:            Shur-Loc
+ * Author:            Shur-loc
  * Author URI:        https://shurloc.com/
  * Text Domain:       shurloc-customer-tools
  *
