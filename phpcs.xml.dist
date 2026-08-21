@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<ruleset name="Shur-Loc Customer Tools">
+<ruleset name="Shur-loc Customer Tools">
 
 	<description>
-		WordPress Coding Standards for the Shur-Loc Customer Tools plugin.
+		WordPress Coding Standards for the Shur-loc Customer Tools plugin.
 	</description>
 
 	<!-- Analyze code as PHP 8.4 -->
