@@ -104,6 +104,12 @@ $GLOBALS['shurloc_test_redirects'] = array();
  */
 $GLOBALS['shurloc_test_wp_die_messages'] = array();
 
+/**
+ * Test WordPress database instance.
+ */
+// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Test-only wpdb replacement.
+$GLOBALS['wpdb'] = new Shurloc_Test_WPDB();
+
 
 if ( ! function_exists( 'add_action' ) ) {
 
@@ -1382,5 +1388,76 @@ if ( ! function_exists( 'delete_option' ) ) {
 		);
 
 		return true;
+	}
+}
+
+if ( ! function_exists( 'get_userdata' ) ) {
+
+	/**
+	 * Retrieve a test WordPress user.
+	 *
+	 * Test replacement for get_userdata().
+	 *
+	 * @param int $user_id User ID.
+	 * @return object|false
+	 */
+	function get_userdata(
+		int $user_id
+	): object|false {
+
+		if (
+			! isset(
+				$GLOBALS['shurloc_test_users'][ $user_id ]
+			)
+		) {
+			return false;
+		}
+
+		return (object) array(
+			'ID' => $user_id,
+		);
+	}
+}
+
+if ( ! function_exists( 'maybe_unserialize' ) ) {
+
+	/**
+	 * Unserialize test data when it contains a serialized value.
+	 *
+	 * Test replacement for maybe_unserialize().
+	 *
+	 * @param mixed $data Value to inspect.
+	 * @return mixed
+	 */
+	function maybe_unserialize(
+		$data
+	) {
+
+		if ( ! is_string( $data ) ) {
+			return $data;
+		}
+
+		$trimmed = trim( $data );
+
+		if ( '' === $trimmed ) {
+			return $data;
+		}
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_unserialize -- Test double must read serialized WooCommerce session fixtures.
+		$result = unserialize(
+			$trimmed,
+			array(
+				'allowed_classes' => false,
+			)
+		);
+
+		if (
+			false === $result &&
+			'b:0;' !== $trimmed
+		) {
+			return $data;
+		}
+
+		return $result;
 	}
 }

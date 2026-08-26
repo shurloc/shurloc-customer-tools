@@ -14,7 +14,7 @@ namespace Shurloc\CustomerTools;
 
 defined( 'ABSPATH' ) || exit;
 
-use Throwable;
+use Exception;
 
 /**
  * Seeds purchase tracking data for existing users.
@@ -158,7 +158,7 @@ final class Shurloc_User_Purchase_Migration {
 
 				++$result['updated'];
 
-			} catch ( Throwable $exception ) {
+			} catch ( Exception $exception ) {
 
 				unset( $exception );
 

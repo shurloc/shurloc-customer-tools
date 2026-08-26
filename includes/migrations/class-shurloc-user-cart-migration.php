@@ -14,7 +14,7 @@ namespace Shurloc\CustomerTools;
 
 defined( 'ABSPATH' ) || exit;
 
-use Throwable;
+use Exception;
 
 /**
  * Seeds cart tracking data for existing users.
@@ -198,7 +198,7 @@ final class Shurloc_User_Cart_Migration {
 
 				++$result['updated'];
 
-			} catch ( Throwable $exception ) {
+			} catch ( Exception $exception ) {
 
 				unset( $exception );
 
