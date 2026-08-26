@@ -64,6 +64,15 @@ $GLOBALS['shurloc_test_enqueued_scripts'] = array();
  */
 $GLOBALS['shurloc_test_filter_metadata'] = array();
 
+/**
+ * Test WordPress users.
+ */
+$GLOBALS['shurloc_test_users'] = array();
+
+/**
+ * Stored test WordPress options.
+ */
+$GLOBALS['shurloc_test_options'] = array();
 
 if ( ! function_exists( 'add_action' ) ) {
 
@@ -276,6 +285,10 @@ if ( ! function_exists( 'get_option' ) ) {
 	/**
 	 * Get a test option.
 	 *
+	 * Returns predefined WordPress option values where needed by the test
+	 * environment, then checks the test option store before returning the
+	 * supplied default value.
+	 *
 	 * @param string $option         Option name.
 	 * @param mixed  $default_return Default value.
 	 * @return mixed
@@ -289,7 +302,41 @@ if ( ! function_exists( 'get_option' ) ) {
 			return 'F j, Y';
 		}
 
+		if (
+			isset( $GLOBALS['shurloc_test_options'] ) &&
+			array_key_exists(
+				$option,
+				$GLOBALS['shurloc_test_options']
+			)
+		) {
+			return $GLOBALS['shurloc_test_options'][ $option ];
+		}
+
 		return $default_return;
+	}
+}
+
+
+if ( ! function_exists( 'update_option' ) ) {
+
+	/**
+	 * Update a WordPress option.
+	 *
+	 * Test replacement for update_option().
+	 *
+	 * @param string $option Option name.
+	 * @param mixed  $value  Option value.
+	 * @return bool
+	 */
+	function update_option(
+		string $option,
+		mixed $value
+	): bool {
+
+		$GLOBALS['shurloc_test_options'][ $option ] =
+			$value;
+
+		return true;
 	}
 }
 
@@ -987,5 +1034,26 @@ if ( ! function_exists( 'add_submenu_page' ) ) {
 		);
 
 		return $parent_slug . '_page_' . $menu_slug;
+	}
+}
+
+if ( ! function_exists( 'get_users' ) ) {
+
+	/**
+	 * Retrieve WordPress users.
+	 *
+	 * Test replacement for get_users().
+	 *
+	 * @param array<string, mixed> $args User query arguments.
+	 * @return int[]
+	 */
+	function get_users(
+		array $args = array()
+	): array {
+
+		unset( $args );
+
+		return $GLOBALS['shurloc_test_users']
+			?? array();
 	}
 }
