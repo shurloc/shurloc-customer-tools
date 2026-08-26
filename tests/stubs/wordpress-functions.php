@@ -64,6 +64,46 @@ $GLOBALS['shurloc_test_enqueued_scripts'] = array();
  */
 $GLOBALS['shurloc_test_filter_metadata'] = array();
 
+/**
+ * Test WordPress users.
+ */
+$GLOBALS['shurloc_test_users'] = array();
+
+/**
+ * Stored test WordPress options.
+ */
+$GLOBALS['shurloc_test_options'] = array();
+
+/**
+ * Recorded test nonce fields.
+ */
+$GLOBALS['shurloc_test_nonce_fields'] = array();
+
+/**
+ * Test user capabilities.
+ */
+$GLOBALS['shurloc_test_user_capabilities'] = array();
+
+/**
+ * Recorded test admin referer checks.
+ */
+$GLOBALS['shurloc_test_admin_referer_checks'] = array();
+
+/**
+ * Whether test nonce verification succeeds.
+ */
+$GLOBALS['shurloc_test_nonce_valid'] = true;
+
+/**
+ * Recorded test redirects.
+ */
+$GLOBALS['shurloc_test_redirects'] = array();
+
+/**
+ * Recorded test wp_die() messages.
+ */
+$GLOBALS['shurloc_test_wp_die_messages'] = array();
+
 
 if ( ! function_exists( 'add_action' ) ) {
 
@@ -276,6 +316,10 @@ if ( ! function_exists( 'get_option' ) ) {
 	/**
 	 * Get a test option.
 	 *
+	 * Returns predefined WordPress option values where needed by the test
+	 * environment, then checks the test option store before returning the
+	 * supplied default value.
+	 *
 	 * @param string $option         Option name.
 	 * @param mixed  $default_return Default value.
 	 * @return mixed
@@ -289,7 +333,41 @@ if ( ! function_exists( 'get_option' ) ) {
 			return 'F j, Y';
 		}
 
+		if (
+			isset( $GLOBALS['shurloc_test_options'] ) &&
+			array_key_exists(
+				$option,
+				$GLOBALS['shurloc_test_options']
+			)
+		) {
+			return $GLOBALS['shurloc_test_options'][ $option ];
+		}
+
 		return $default_return;
+	}
+}
+
+
+if ( ! function_exists( 'update_option' ) ) {
+
+	/**
+	 * Update a WordPress option.
+	 *
+	 * Test replacement for update_option().
+	 *
+	 * @param string $option Option name.
+	 * @param mixed  $value  Option value.
+	 * @return bool
+	 */
+	function update_option(
+		string $option,
+		mixed $value
+	): bool {
+
+		$GLOBALS['shurloc_test_options'][ $option ] =
+			$value;
+
+		return true;
 	}
 }
 
@@ -987,5 +1065,322 @@ if ( ! function_exists( 'add_submenu_page' ) ) {
 		);
 
 		return $parent_slug . '_page_' . $menu_slug;
+	}
+}
+
+if ( ! function_exists( 'get_users' ) ) {
+
+	/**
+	 * Retrieve WordPress users.
+	 *
+	 * Test replacement for get_users().
+	 *
+	 * @param array<string, mixed> $args User query arguments.
+	 * @return int[]
+	 */
+	function get_users(
+		array $args = array()
+	): array {
+
+		unset( $args );
+
+		return $GLOBALS['shurloc_test_users']
+			?? array();
+	}
+}
+
+if ( ! function_exists( 'wp_nonce_field' ) ) {
+
+	/**
+	 * Output a WordPress nonce field.
+	 *
+	 * Test replacement for wp_nonce_field().
+	 *
+	 * @param int|string $action  Nonce action.
+	 * @param string     $name    Nonce field name.
+	 * @param bool       $referer Whether to include the referer field.
+	 * @param bool       $display Whether to display the nonce field.
+	 * @return string
+	 */
+	function wp_nonce_field(
+		$action = -1,
+		string $name = '_wpnonce',
+		bool $referer = true,
+		bool $display = true
+	): string {
+
+		$GLOBALS['shurloc_test_nonce_fields'][] = array(
+			'action'  => $action,
+			'name'    => $name,
+			'referer' => $referer,
+			'display' => $display,
+		);
+
+		return '';
+	}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+
+	/**
+	 * Determine whether the current test user has a capability.
+	 *
+	 * Test replacement for current_user_can().
+	 *
+	 * @param string $capability Capability name.
+	 * @param mixed  ...$args    Optional capability arguments.
+	 * @return bool
+	 */
+	function current_user_can(
+		string $capability,
+		...$args
+	): bool {
+
+		unset( $args );
+
+		return (bool) (
+			$GLOBALS['shurloc_test_user_capabilities'][ $capability ]
+			?? false
+		);
+	}
+}
+
+if ( ! function_exists( 'check_admin_referer' ) ) {
+
+	/**
+	 * Verify a test admin nonce.
+	 *
+	 * Test replacement for check_admin_referer().
+	 *
+	 * @param int|string $action    Nonce action.
+	 * @param string     $query_arg Nonce field name.
+	 * @return int|false
+	 */
+	function check_admin_referer(
+		$action = -1,
+		string $query_arg = '_wpnonce'
+	): int|false {
+
+		$GLOBALS['shurloc_test_admin_referer_checks'][] = array(
+			'action'    => $action,
+			'query_arg' => $query_arg,
+		);
+
+		return $GLOBALS['shurloc_test_nonce_valid']
+			? 1
+			: false;
+	}
+}
+
+if ( ! function_exists( 'wp_create_nonce' ) ) {
+
+	/**
+	 * Create a test nonce.
+	 *
+	 * Test replacement for wp_create_nonce().
+	 *
+	 * @param int|string $action Nonce action.
+	 * @return string
+	 */
+	function wp_create_nonce(
+		$action = -1
+	): string {
+
+		return 'test-nonce-' . (string) $action;
+	}
+}
+
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+
+	/**
+	 * Verify a test nonce.
+	 *
+	 * Test replacement for wp_verify_nonce().
+	 *
+	 * @param string     $nonce  Nonce value.
+	 * @param int|string $action Nonce action.
+	 * @return int|false
+	 */
+	function wp_verify_nonce(
+		string $nonce,
+		$action = -1
+	): int|false {
+
+		if ( ! $GLOBALS['shurloc_test_nonce_valid'] ) {
+			return false;
+		}
+
+		return (
+			'test-nonce-' . (string) $action === $nonce
+		)
+			? 1
+			: false;
+	}
+}
+
+if ( ! function_exists( 'wp_safe_redirect' ) ) {
+
+	/**
+	 * Record a test safe redirect.
+	 *
+	 * Test replacement for wp_safe_redirect().
+	 *
+	 * @param string $location Redirect URL.
+	 * @param int    $status   HTTP status code.
+	 * @param string $x_redirect_by Application performing the redirect.
+	 * @return bool
+	 */
+	function wp_safe_redirect(
+		string $location,
+		int $status = 302,
+		string $x_redirect_by = 'WordPress'
+	): bool {
+
+		$GLOBALS['shurloc_test_redirects'][] = array(
+			'location'      => $location,
+			'status'        => $status,
+			'x_redirect_by' => $x_redirect_by,
+		);
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_die' ) ) {
+
+	/**
+	 * Terminate a test WordPress request.
+	 *
+	 * Test replacement for wp_die().
+	 *
+	 * @param string $message Error message.
+	 * @return never
+	 *
+	 * @throws RuntimeException Always.
+	 */
+	function wp_die(
+		string $message = ''
+	): never {
+
+		$GLOBALS['shurloc_test_wp_die_messages'][] =
+			$message;
+
+		throw new RuntimeException(
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Test-only exception used to stop execution.
+			$message
+		);
+	}
+}
+
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+
+	/**
+	 * Sanitize a test text field.
+	 *
+	 * Test replacement for sanitize_text_field().
+	 *
+	 * @param string $value Text value.
+	 * @return string
+	 */
+	function sanitize_text_field(
+		string $value
+	): string {
+
+		return trim(
+			wp_strip_all_tags( $value )
+		);
+	}
+}
+
+if ( ! function_exists( 'absint' ) ) {
+
+	/**
+	 * Convert a value to a non-negative integer.
+	 *
+	 * Test replacement for absint().
+	 *
+	 * @param mixed $value Value.
+	 * @return int
+	 */
+	function absint(
+		$value
+	): int {
+
+		return abs(
+			(int) $value
+		);
+	}
+}
+
+if ( ! function_exists( 'add_option' ) ) {
+
+	/**
+	 * Add a test WordPress option.
+	 *
+	 * Test replacement for add_option(). Returns false when the option
+	 * already exists, matching the behavior required for migration locking.
+	 *
+	 * @param string $option     Option name.
+	 * @param mixed  $value      Option value.
+	 * @param string $deprecated Deprecated argument.
+	 * @param bool   $autoload   Whether to autoload the option.
+	 * @return bool
+	 */
+	function add_option(
+		string $option,
+		mixed $value = '',
+		string $deprecated = '',
+		bool $autoload = true
+	): bool {
+
+		unset(
+			$deprecated,
+			$autoload
+		);
+
+		if (
+			array_key_exists(
+				$option,
+				$GLOBALS['shurloc_test_options']
+			)
+		) {
+			return false;
+		}
+
+		$GLOBALS['shurloc_test_options'][ $option ] =
+			$value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+
+	/**
+	 * Delete a test WordPress option.
+	 *
+	 * Test replacement for delete_option().
+	 *
+	 * @param string $option Option name.
+	 * @return bool
+	 */
+	function delete_option(
+		string $option
+	): bool {
+
+		if (
+			! array_key_exists(
+				$option,
+				$GLOBALS['shurloc_test_options']
+			)
+		) {
+			return false;
+		}
+
+		unset(
+			$GLOBALS['shurloc_test_options'][ $option ]
+		);
+
+		return true;
 	}
 }

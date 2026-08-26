@@ -1,0 +1,489 @@
+<?php
+/**
+ * Customer migrations admin controller.
+ *
+ * @package ShurlocCustomerTools
+ */
+
+declare( strict_types=1 );
+
+namespace Shurloc\CustomerTools;
+
+defined( 'ABSPATH' ) || exit;
+
+/**
+ * Renders and processes customer data migrations.
+ */
+final class Shurloc_Customer_Migrations_Controller {
+
+	/**
+	 * Admin page slug.
+	 */
+	private const PAGE_SLUG = 'shurloc-customer-tools';
+
+	/**
+	 * Admin tab slug.
+	 */
+	private const TAB_SLUG = 'migrations';
+
+	/**
+	 * Required capability.
+	 */
+	private const CAPABILITY = 'manage_options';
+
+	/**
+	 * Purchase migration action.
+	 */
+	private const PURCHASE_ACTION =
+		'shurloc_run_purchase_migration';
+
+	/**
+	 * Purchase migration result nonce action.
+	 */
+	private const PURCHASE_RESULT_NONCE_ACTION =
+		'shurloc_purchase_migration_result';
+
+	/**
+	 * Purchase migration.
+	 *
+	 * @var Shurloc_User_Purchase_Migration
+	 */
+	private Shurloc_User_Purchase_Migration $purchase_migration;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param Shurloc_User_Purchase_Migration $purchase_migration Purchase migration.
+	 */
+	public function __construct(
+		Shurloc_User_Purchase_Migration $purchase_migration
+	) {
+
+		$this->purchase_migration = $purchase_migration;
+	}
+
+	/**
+	 * Register WordPress hooks.
+	 *
+	 * @return void
+	 */
+	public function register(): void {
+
+		add_action(
+			'admin_post_' . self::PURCHASE_ACTION,
+			array(
+				$this,
+				'handle_purchase_migration',
+			)
+		);
+
+		add_action(
+			'admin_enqueue_scripts',
+			array(
+				$this,
+				'enqueue_assets',
+			)
+		);
+	}
+
+	/**
+	 * Enqueue migration admin assets.
+	 *
+	 * @return void
+	 */
+	public function enqueue_assets(): void {
+
+		if ( ! $this->is_migrations_page() ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'shurloc-customer-migrations',
+			SHURLOC_CUSTOMER_TOOLS_URL .
+				'assets/css/customer-migrations.css',
+			array(),
+			SHURLOC_CUSTOMER_TOOLS_VERSION
+		);
+
+		wp_enqueue_script(
+			'shurloc-customer-migrations',
+			SHURLOC_CUSTOMER_TOOLS_URL .
+				'assets/js/customer-migrations.js',
+			array(),
+			SHURLOC_CUSTOMER_TOOLS_VERSION,
+			true
+		);
+	}
+
+	/**
+	 * Render the migrations tab.
+	 *
+	 * @return void
+	 */
+	public function render(): void {
+
+		$this->render_result_notice();
+
+		$last_run = $this->purchase_migration->get_last_run();
+
+		$last_run_display = 'Never';
+
+		if ( 0 < $last_run ) {
+
+			$formatted_last_run = wp_date(
+				'F j, Y g:i a',
+				$last_run
+			);
+
+			if ( false !== $formatted_last_run ) {
+				$last_run_display = $formatted_last_run;
+			}
+		}
+
+		$last_run_version =
+			$this->purchase_migration->get_last_run_version();
+
+		?>
+		<h2>Customer Data Migrations</h2>
+
+		<p>
+			Controlled tools for seeding and rebuilding customer
+			tracking data.
+		</p>
+
+		<div class="card">
+			<h2>Purchase Tracking Seeding</h2>
+
+			<p>
+				Seeds each registered user's last-purchase data from
+				their most recent qualifying WooCommerce order.
+			</p>
+
+			<table class="widefat striped">
+				<tbody>
+					<tr>
+						<th scope="row">Current migration version</th>
+						<td>
+							<?php
+							echo esc_html(
+								(string) Shurloc_User_Purchase_Migration::VERSION
+							);
+							?>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">Last-run migration version</th>
+						<td>
+							<?php
+							echo esc_html(
+								0 < $last_run_version
+									? (string) $last_run_version
+									: 'Not recorded'
+							);
+							?>
+						</td>
+					</tr>
+
+					<tr>
+						<th scope="row">Last run</th>
+						<td>
+							<?php echo esc_html( $last_run_display ); ?>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<form
+				method="post"
+				action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>"
+				class="shurloc-migration-form"
+				data-confirm-message="Run the Purchase Tracking migration? This will rebuild purchase tracking data for existing users."
+			>
+				<input
+					type="hidden"
+					name="action"
+					value="<?php echo esc_attr( self::PURCHASE_ACTION ); ?>"
+				/>
+
+				<?php
+				wp_nonce_field(
+					self::PURCHASE_ACTION
+				);
+				?>
+
+				<p>
+					<label>
+						<input
+							type="checkbox"
+							class="shurloc-migration-enable"
+						/>
+
+						Enable this migration
+					</label>
+				</p>
+
+				<p>
+					<button
+						type="submit"
+						class="button button-primary shurloc-migration-submit"
+						disabled
+					>
+						Run Purchase Migration
+					</button>
+				</p>
+			</form>
+		</div>
+
+		<div
+			class="shurloc-migration-overlay"
+			hidden
+		>
+			<div
+				class="shurloc-migration-dialog"
+				role="status"
+				aria-live="polite"
+			>
+				<span
+					class="spinner is-active"
+					aria-hidden="true"
+				></span>
+
+				<strong>
+					Migration is running…
+				</strong>
+
+				<p>
+					Please keep this page open until the migration completes.
+				</p>
+			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Run the purchase migration and build its result URL.
+	 *
+	 * A migration lock is acquired before execution. If another request is
+	 * already running the migration, no second migration is started.
+	 *
+	 * @return string Redirect URL.
+	 */
+	public function run_purchase_migration(): string {
+
+		if ( ! $this->purchase_migration->acquire_lock() ) {
+			return $this->get_purchase_migration_locked_redirect_url();
+		}
+
+		try {
+
+			$result = $this->purchase_migration->run();
+
+			return $this->get_purchase_migration_redirect_url(
+				result: $result,
+			);
+
+		} finally {
+
+			$this->purchase_migration->release_lock();
+		}
+	}
+
+	/**
+	 * Process the purchase migration request.
+	 *
+	 * @return void
+	 */
+	public function handle_purchase_migration(): void {
+
+		if ( ! current_user_can( self::CAPABILITY ) ) {
+			wp_die(
+				esc_html__(
+					'You are not allowed to run this migration.',
+					'shurloc-customer-tools'
+				)
+			);
+		}
+
+		check_admin_referer(
+			self::PURCHASE_ACTION
+		);
+
+		$redirect_url = $this->run_purchase_migration();
+
+		wp_safe_redirect(
+			$redirect_url
+		);
+
+		exit;
+	}
+
+	/**
+	 * Build the redirect URL for a completed purchase migration.
+	 *
+	 * @param array{ examined: int, updated: int, skipped: int, errors: int } $result Migration result.
+	 * @return string
+	 */
+	private function get_purchase_migration_redirect_url(
+		array $result
+	): string {
+
+		return add_query_arg(
+			array(
+				'page'      => self::PAGE_SLUG,
+				'tab'       => self::TAB_SLUG,
+				'migration' => 'purchase',
+				'examined'  => $result['examined'],
+				'updated'   => $result['updated'],
+				'skipped'   => $result['skipped'],
+				'errors'    => $result['errors'],
+				'_wpnonce'  => wp_create_nonce(
+					self::PURCHASE_RESULT_NONCE_ACTION
+				),
+			),
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Build the redirect URL when the purchase migration is already running.
+	 *
+	 * @return string
+	 */
+	private function get_purchase_migration_locked_redirect_url(): string {
+
+		return add_query_arg(
+			array(
+				'page'      => self::PAGE_SLUG,
+				'tab'       => self::TAB_SLUG,
+				'migration' => 'purchase-locked',
+				'_wpnonce'  => wp_create_nonce(
+					self::PURCHASE_RESULT_NONCE_ACTION
+				),
+			),
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Render the result from the previous migration run.
+	 *
+	 * @return void
+	 */
+	private function render_result_notice(): void {
+
+		if (
+			! isset(
+				$_GET['_wpnonce'],
+				$_GET['migration']
+			)
+		) {
+			return;
+		}
+
+		$nonce = sanitize_text_field(
+			wp_unslash( $_GET['_wpnonce'] )
+		);
+
+		if (
+			! wp_verify_nonce(
+				$nonce,
+				self::PURCHASE_RESULT_NONCE_ACTION
+			)
+		) {
+			return;
+		}
+
+		$migration = sanitize_key(
+			wp_unslash( $_GET['migration'] )
+		);
+
+		if ( 'purchase-locked' === $migration ) {
+			?>
+			<div class="notice notice-warning is-dismissible">
+				<p>
+					<?php
+					echo esc_html__(
+						'Purchase migration is already running. No second migration was started.',
+						'shurloc-customer-tools'
+					);
+					?>
+				</p>
+			</div>
+			<?php
+
+			return;
+		}
+
+		if ( 'purchase' !== $migration ) {
+			return;
+		}
+
+		$examined = isset( $_GET['examined'] )
+			? absint( $_GET['examined'] )
+			: 0;
+
+		$updated = isset( $_GET['updated'] )
+			? absint( $_GET['updated'] )
+			: 0;
+
+		$skipped = isset( $_GET['skipped'] )
+			? absint( $_GET['skipped'] )
+			: 0;
+
+		$errors = isset( $_GET['errors'] )
+			? absint( $_GET['errors'] )
+			: 0;
+
+		$notice_class = 0 === $errors
+			? 'notice notice-success is-dismissible'
+			: 'notice notice-warning is-dismissible';
+
+		?>
+		<div class="<?php echo esc_attr( $notice_class ); ?>">
+			<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						'Purchase migration complete. Examined: %d; Updated: %d; Skipped: %d; Errors: %d.',
+						$examined,
+						$updated,
+						$skipped,
+						$errors
+					)
+				);
+				?>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Determine whether the current request is the migrations page.
+	 *
+	 * @return bool
+	 */
+	private function is_migrations_page(): bool {
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = isset( $_GET['page'] )
+			? sanitize_key(
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				wp_unslash( $_GET['page'] )
+			)
+			: '';
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$tab = isset( $_GET['tab'] )
+			? sanitize_key(
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				wp_unslash( $_GET['tab'] )
+			)
+			: '';
+
+		return (
+			self::PAGE_SLUG === $page &&
+			self::TAB_SLUG === $tab
+		);
+	}
+}

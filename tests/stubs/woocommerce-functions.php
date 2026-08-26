@@ -18,6 +18,16 @@ $GLOBALS['shurloc_test_woocommerce'] = null;
  */
 $GLOBALS['shurloc_test_orders'] = array();
 
+/**
+ * Test WooCommerce orders indexed by customer user ID.
+ */
+$GLOBALS['shurloc_test_orders'] = array();
+
+/**
+ * Recorded WooCommerce order query arguments.
+ */
+$GLOBALS['shurloc_test_wc_get_orders_args'] = array();
+
 
 if ( ! function_exists( 'wc_get_order_status_name' ) ) {
 
@@ -168,5 +178,31 @@ if ( ! function_exists( 'wc_attribute_label' ) ) {
 		);
 
 		return ucwords( $name );
+	}
+
+	if ( ! function_exists( 'wc_get_orders' ) ) {
+
+		/**
+		 * Retrieve WooCommerce orders.
+		 *
+		 * Test replacement for wc_get_orders().
+		 *
+		 * @param array<string, mixed> $args Order query arguments.
+		 * @return WC_Order[]
+		 */
+		function wc_get_orders(
+			array $args = array()
+		): array {
+
+			$GLOBALS['shurloc_test_wc_get_orders_args'][] =
+			$args;
+
+			$user_id = isset( $args['customer_id'] )
+			? (int) $args['customer_id']
+			: 0;
+
+			return $GLOBALS['shurloc_test_orders'][ $user_id ]
+			?? array();
+		}
 	}
 }
