@@ -74,6 +74,11 @@ $GLOBALS['shurloc_test_users'] = array();
  */
 $GLOBALS['shurloc_test_options'] = array();
 
+/**
+ * Recorded test nonce fields.
+ */
+$GLOBALS['shurloc_test_nonce_fields'] = array();
+
 if ( ! function_exists( 'add_action' ) ) {
 
 	/**
@@ -1055,5 +1060,36 @@ if ( ! function_exists( 'get_users' ) ) {
 
 		return $GLOBALS['shurloc_test_users']
 			?? array();
+	}
+}
+
+if ( ! function_exists( 'wp_nonce_field' ) ) {
+
+	/**
+	 * Output a WordPress nonce field.
+	 *
+	 * Test replacement for wp_nonce_field().
+	 *
+	 * @param int|string $action  Nonce action.
+	 * @param string     $name    Nonce field name.
+	 * @param bool       $referer Whether to include the referer field.
+	 * @param bool       $display Whether to display the nonce field.
+	 * @return string
+	 */
+	function wp_nonce_field(
+		$action = -1,
+		string $name = '_wpnonce',
+		bool $referer = true,
+		bool $display = true
+	): string {
+
+		$GLOBALS['shurloc_test_nonce_fields'][] = array(
+			'action'  => $action,
+			'name'    => $name,
+			'referer' => $referer,
+			'display' => $display,
+		);
+
+		return '';
 	}
 }
