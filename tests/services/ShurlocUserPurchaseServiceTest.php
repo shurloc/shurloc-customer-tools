@@ -668,4 +668,131 @@ final class ShurlocUserPurchaseServiceTest extends TestCase {
 				[ Shurloc_User_Purchase_Service::LAST_PURCHASE_TOTAL_META_KEY ]
 		);
 	}
+
+	/**
+	 * Verify a purchase snapshot can be stored directly from an order.
+	 *
+	 * @return void
+	 */
+	public function test_store_purchase_from_order_stores_purchase_meta(): void {
+
+		$order = $this->create_order(
+			order_id: 200,
+			user_id: 101,
+			status: 'completed',
+			timestamp: 1_000_000,
+			total: 125.50,
+		);
+
+		$result = $this->service->store_purchase_from_order(
+			101,
+			$order
+		);
+
+		self::assertTrue( $result );
+
+		$this->assert_purchase_meta(
+			user_id: 101,
+			order_id: 200,
+			timestamp: 1_000_000,
+			status: 'completed',
+			total: 125.50,
+		);
+	}
+
+	/**
+	 * Verify an invalid user ID is rejected.
+	 *
+	 * @return void
+	 */
+	public function test_store_purchase_from_order_rejects_invalid_user_id(): void {
+
+		$order = $this->create_order(
+			order_id: 200,
+			user_id: 0,
+			status: 'completed',
+			timestamp: 1_000_000,
+			total: 125.50,
+		);
+
+		$result = $this->service->store_purchase_from_order(
+			0,
+			$order
+		);
+
+		self::assertFalse( $result );
+
+		self::assertSame(
+			array(),
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify an order without a creation date cannot be stored.
+	 *
+	 * @return void
+	 */
+	public function test_store_purchase_from_order_rejects_order_without_creation_date(): void {
+
+		$order = new WC_Order( 200 );
+
+		$order->set_customer_id( 101 );
+		$order->set_status( 'completed' );
+		$order->set_date_created( null );
+		$order->set_total( '125.50' );
+
+		$result = $this->service->store_purchase_from_order(
+			101,
+			$order
+		);
+
+		self::assertFalse( $result );
+
+		self::assertSame(
+			array(),
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify direct purchase storage overwrites an existing snapshot.
+	 *
+	 * This is intentional for controlled migration and reseeding operations.
+	 *
+	 * @return void
+	 */
+	public function test_store_purchase_from_order_overwrites_existing_purchase(): void {
+
+		$this->seed_purchase_meta(
+			user_id: 101,
+			order_id: 300,
+			timestamp: 2_000_000,
+			status: 'completed',
+			total: 250.00,
+		);
+
+		$order = $this->create_order(
+			order_id: 200,
+			user_id: 101,
+			status: 'processing',
+			timestamp: 1_000_000,
+			total: 125.50,
+		);
+
+		$result = $this->service->store_purchase_from_order(
+			101,
+			$order
+		);
+
+		self::assertTrue( $result );
+
+		$this->assert_purchase_meta(
+			user_id: 101,
+			order_id: 200,
+			timestamp: 1_000_000,
+			status: 'processing',
+			total: 125.50,
+		);
+	}
 }
