@@ -79,6 +79,32 @@ $GLOBALS['shurloc_test_options'] = array();
  */
 $GLOBALS['shurloc_test_nonce_fields'] = array();
 
+/**
+ * Test user capabilities.
+ */
+$GLOBALS['shurloc_test_user_capabilities'] = array();
+
+/**
+ * Recorded test admin referer checks.
+ */
+$GLOBALS['shurloc_test_admin_referer_checks'] = array();
+
+/**
+ * Whether test nonce verification succeeds.
+ */
+$GLOBALS['shurloc_test_nonce_valid'] = true;
+
+/**
+ * Recorded test redirects.
+ */
+$GLOBALS['shurloc_test_redirects'] = array();
+
+/**
+ * Recorded test wp_die() messages.
+ */
+$GLOBALS['shurloc_test_wp_die_messages'] = array();
+
+
 if ( ! function_exists( 'add_action' ) ) {
 
 	/**
@@ -1091,5 +1117,197 @@ if ( ! function_exists( 'wp_nonce_field' ) ) {
 		);
 
 		return '';
+	}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+
+	/**
+	 * Determine whether the current test user has a capability.
+	 *
+	 * Test replacement for current_user_can().
+	 *
+	 * @param string $capability Capability name.
+	 * @param mixed  ...$args    Optional capability arguments.
+	 * @return bool
+	 */
+	function current_user_can(
+		string $capability,
+		...$args
+	): bool {
+
+		unset( $args );
+
+		return (bool) (
+			$GLOBALS['shurloc_test_user_capabilities'][ $capability ]
+			?? false
+		);
+	}
+}
+
+if ( ! function_exists( 'check_admin_referer' ) ) {
+
+	/**
+	 * Verify a test admin nonce.
+	 *
+	 * Test replacement for check_admin_referer().
+	 *
+	 * @param int|string $action    Nonce action.
+	 * @param string     $query_arg Nonce field name.
+	 * @return int|false
+	 */
+	function check_admin_referer(
+		$action = -1,
+		string $query_arg = '_wpnonce'
+	): int|false {
+
+		$GLOBALS['shurloc_test_admin_referer_checks'][] = array(
+			'action'    => $action,
+			'query_arg' => $query_arg,
+		);
+
+		return $GLOBALS['shurloc_test_nonce_valid']
+			? 1
+			: false;
+	}
+}
+
+if ( ! function_exists( 'wp_create_nonce' ) ) {
+
+	/**
+	 * Create a test nonce.
+	 *
+	 * Test replacement for wp_create_nonce().
+	 *
+	 * @param int|string $action Nonce action.
+	 * @return string
+	 */
+	function wp_create_nonce(
+		$action = -1
+	): string {
+
+		return 'test-nonce-' . (string) $action;
+	}
+}
+
+if ( ! function_exists( 'wp_verify_nonce' ) ) {
+
+	/**
+	 * Verify a test nonce.
+	 *
+	 * Test replacement for wp_verify_nonce().
+	 *
+	 * @param string     $nonce  Nonce value.
+	 * @param int|string $action Nonce action.
+	 * @return int|false
+	 */
+	function wp_verify_nonce(
+		string $nonce,
+		$action = -1
+	): int|false {
+
+		if ( ! $GLOBALS['shurloc_test_nonce_valid'] ) {
+			return false;
+		}
+
+		return (
+			'test-nonce-' . (string) $action === $nonce
+		)
+			? 1
+			: false;
+	}
+}
+
+if ( ! function_exists( 'wp_safe_redirect' ) ) {
+
+	/**
+	 * Record a test safe redirect.
+	 *
+	 * Test replacement for wp_safe_redirect().
+	 *
+	 * @param string $location Redirect URL.
+	 * @param int    $status   HTTP status code.
+	 * @param string $x_redirect_by Application performing the redirect.
+	 * @return bool
+	 */
+	function wp_safe_redirect(
+		string $location,
+		int $status = 302,
+		string $x_redirect_by = 'WordPress'
+	): bool {
+
+		$GLOBALS['shurloc_test_redirects'][] = array(
+			'location'      => $location,
+			'status'        => $status,
+			'x_redirect_by' => $x_redirect_by,
+		);
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_die' ) ) {
+
+	/**
+	 * Terminate a test WordPress request.
+	 *
+	 * Test replacement for wp_die().
+	 *
+	 * @param string $message Error message.
+	 * @return never
+	 *
+	 * @throws RuntimeException Always.
+	 */
+	function wp_die(
+		string $message = ''
+	): never {
+
+		$GLOBALS['shurloc_test_wp_die_messages'][] =
+			$message;
+
+		throw new RuntimeException(
+			// phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- Test-only exception used to stop execution.
+			$message
+		);
+	}
+}
+
+if ( ! function_exists( 'sanitize_text_field' ) ) {
+
+	/**
+	 * Sanitize a test text field.
+	 *
+	 * Test replacement for sanitize_text_field().
+	 *
+	 * @param string $value Text value.
+	 * @return string
+	 */
+	function sanitize_text_field(
+		string $value
+	): string {
+
+		return trim(
+			wp_strip_all_tags( $value )
+		);
+	}
+}
+
+if ( ! function_exists( 'absint' ) ) {
+
+	/**
+	 * Convert a value to a non-negative integer.
+	 *
+	 * Test replacement for absint().
+	 *
+	 * @param mixed $value Value.
+	 * @return int
+	 */
+	function absint(
+		$value
+	): int {
+
+		return abs(
+			(int) $value
+		);
 	}
 }

@@ -224,7 +224,21 @@ final class Shurloc_Customer_Migrations_Controller {
 	}
 
 	/**
-	 * Process the purchase migration.
+	 * Run the purchase migration and build its result URL.
+	 *
+	 * @return string Redirect URL.
+	 */
+	public function run_purchase_migration(): string {
+
+		$result = $this->purchase_migration->run();
+
+		return $this->get_purchase_migration_redirect_url(
+			result: $result,
+		);
+	}
+
+	/**
+	 * Process the purchase migration request.
 	 *
 	 * @return void
 	 */
@@ -243,9 +257,26 @@ final class Shurloc_Customer_Migrations_Controller {
 			self::PURCHASE_ACTION
 		);
 
-		$result = $this->purchase_migration->run();
+		$redirect_url = $this->run_purchase_migration();
 
-		$redirect_url = add_query_arg(
+		wp_safe_redirect(
+			$redirect_url
+		);
+
+		exit;
+	}
+
+	/**
+	 * Build the redirect URL for a completed purchase migration.
+	 *
+	 * @param array{ examined: int, updated: int, skipped: int, errors: int } $result Migration result.
+	 * @return string
+	 */
+	private function get_purchase_migration_redirect_url(
+		array $result
+	): string {
+
+		return add_query_arg(
 			array(
 				'page'      => self::PAGE_SLUG,
 				'tab'       => self::TAB_SLUG,
@@ -260,12 +291,6 @@ final class Shurloc_Customer_Migrations_Controller {
 			),
 			admin_url( 'admin.php' )
 		);
-
-		wp_safe_redirect(
-			$redirect_url
-		);
-
-		exit;
 	}
 
 	/**
