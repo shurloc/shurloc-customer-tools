@@ -241,6 +241,43 @@ final class Shurloc_User_Purchase_Service {
 	}
 
 	/**
+	 * Store a WooCommerce order as the user's last purchase snapshot.
+	 *
+	 * This method writes the supplied order directly and does not compare it
+	 * against the currently stored purchase. It is intended for controlled
+	 * operations such as data migrations and reseeding.
+	 *
+	 * @param int      $user_id User ID.
+	 * @param WC_Order $order   WooCommerce order.
+	 * @return bool True when the snapshot was stored, false when it could not be.
+	 */
+	public function store_purchase_from_order(
+		int $user_id,
+		WC_Order $order
+	): bool {
+
+		if ( 0 >= $user_id ) {
+			return false;
+		}
+
+		$date_created = $order->get_date_created();
+
+		if ( null === $date_created ) {
+			return false;
+		}
+
+		$this->store_purchase(
+			user_id: $user_id,
+			order_id: $order->get_id(),
+			timestamp: $date_created->getTimestamp(),
+			status: $order->get_status(),
+			total: (float) $order->get_total(),
+		);
+
+		return true;
+	}
+
+	/**
 	 * Store the user's last purchase metadata.
 	 *
 	 * @param int    $user_id   User ID.
