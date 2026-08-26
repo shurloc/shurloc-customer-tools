@@ -1,5 +1,38 @@
 # Changelog
 
+## [0.7.0] - 2026-08-26
+
+### Added
+- Added a dedicated **Migrations** tab to the Shur-loc Customer Tools admin page.
+- Added a controlled purchase-tracking migration for reseeding existing users from their most recent qualifying WooCommerce order.
+- Added migration status information showing the current version, last-run version, and last-run date.
+- Added protected migration controls requiring an enable checkbox and confirmation before execution.
+- Added migration locking to prevent multiple purchase migrations from running at the same time.
+- Added automatic recovery from stale migration locks.
+- Added visible migration progress feedback with disabled controls, a loading overlay, and spinner while the migration is running.
+- Added post-migration reporting for examined, updated, skipped, and error counts.
+- Added a warning when another purchase migration is already running.
+
+### Changed
+- Extended the purchase tracking service to support purchase data migrations.
+- Moved the existing purchase-seeding functionality from Code Snippets into the Shur-loc Customer Tools plugin.
+- Made purchase seeding safely rerunnable instead of treating it as a one-time operation.
+- Expanded the Customer Tools admin page with separate **Overview** and **Migrations** tabs.
+
+### Internal Improvements
+- Added dedicated migration and migration administration classes.
+- Reused the existing purchase tracking service so live tracking and migration processing share the same purchase data logic.
+- Added migration version and last-run tracking.
+- Added server-side migration locking and security checks for migration execution.
+- Added supporting WordPress test doubles for migration administration and locking.
+
+### Testing
+- Added PHPUnit coverage for purchase migration execution and administration.
+- Added coverage for migration locking, stale-lock recovery, and duplicate-run prevention.
+- Added coverage for migration controls, result notices, progress feedback, and admin tab routing.
+- Verified migration execution, locking, and progress feedback on staging.
+- Verified PHPUnit, PHPCS, and PHPStan checks pass.
+
 ## [0.6.2] - 2026-08-21
 
 ### Internal Improvements

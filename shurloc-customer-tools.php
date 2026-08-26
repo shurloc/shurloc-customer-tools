@@ -3,7 +3,7 @@
  * Plugin Name:       Shur-loc Customer Tools
  * Plugin URI:        https://github.com/shurloc/shurloc-customer-tools
  * Description:       Customer tools for the Shur-loc website.
- * Version:           0.6.2
+ * Version:           0.7.0
  * Requires at least: 7.0
  * Requires PHP:      8.4
  * Requires Plugins:  woocommerce, shurloc-tools
