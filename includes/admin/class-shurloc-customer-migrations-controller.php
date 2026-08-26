@@ -51,15 +51,25 @@ final class Shurloc_Customer_Migrations_Controller {
 	private Shurloc_User_Purchase_Migration $purchase_migration;
 
 	/**
+	 * Cart migration.
+	 *
+	 * @var Shurloc_User_Cart_Migration
+	 */
+	private Shurloc_User_Cart_Migration $cart_migration;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Shurloc_User_Purchase_Migration $purchase_migration Purchase migration.
+	 * @param Shurloc_User_Cart_Migration     $cart_migration Cart migration.
 	 */
 	public function __construct(
-		Shurloc_User_Purchase_Migration $purchase_migration
+		Shurloc_User_Purchase_Migration $purchase_migration,
+		Shurloc_User_Cart_Migration $cart_migration,
 	) {
 
 		$this->purchase_migration = $purchase_migration;
+		$this->cart_migration     = $cart_migration;
 	}
 
 	/**
