@@ -54,7 +54,7 @@ final class Shurloc_User_Purchase_Service {
 	 *
 	 * @var string[]
 	 */
-	private const QUALIFYING_STATUSES = array(
+	public const QUALIFYING_STATUSES = array(
 		'on-hold',
 		'processing',
 		'completed',
