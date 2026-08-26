@@ -48,6 +48,23 @@ final class Shurloc_User_Purchase_Migration {
 	public const LAST_RUN_VERSION_OPTION = 'sl_last_purchase_seeded_version';
 
 	/**
+	 * Option storing the timestamp when the migration lock was acquired.
+	 *
+	 * @var string
+	 */
+	public const LOCK_OPTION = 'sl_last_purchase_migration_lock';
+
+	/**
+	 * Maximum age of a migration lock in seconds.
+	 *
+	 * A stale lock is automatically removed so an interrupted request cannot
+	 * permanently prevent future migration runs.
+	 *
+	 * @var int
+	 */
+	private const LOCK_TIMEOUT = 900;
+
+	/**
 	 * Purchase service.
 	 *
 	 * @var Shurloc_User_Purchase_Service
@@ -73,7 +90,8 @@ final class Shurloc_User_Purchase_Migration {
 	 * one qualifying WooCommerce order, their purchase snapshot is replaced
 	 * with data from their most recent qualifying order.
 	 *
-	 * This migration is intentionally rerunnable.
+	 * This migration is intentionally rerunnable. Concurrent execution is
+	 * controlled separately through the migration lock methods.
 	 *
 	 * @return array{
 	 *     examined: int,
@@ -129,8 +147,8 @@ final class Shurloc_User_Purchase_Migration {
 
 				$stored = $this->purchase_service
 					->store_purchase_from_order(
-						(int) $user_id,
-						$order
+						user_id: (int) $user_id,
+						order: $order,
 					);
 
 				if ( ! $stored ) {
@@ -141,6 +159,8 @@ final class Shurloc_User_Purchase_Migration {
 				++$result['updated'];
 
 			} catch ( Throwable $exception ) {
+
+				unset( $exception );
 
 				++$result['errors'];
 
@@ -159,6 +179,74 @@ final class Shurloc_User_Purchase_Migration {
 		);
 
 		return $result;
+	}
+
+	/**
+	 * Determine whether the migration is currently locked.
+	 *
+	 * Locks older than the configured timeout are considered stale and are
+	 * automatically removed.
+	 *
+	 * @return bool True when an active migration lock exists.
+	 */
+	public function is_locked(): bool {
+
+		$locked_at = (int) get_option(
+			self::LOCK_OPTION,
+			0
+		);
+
+		if ( 0 === $locked_at ) {
+			return false;
+		}
+
+		if (
+			time() - $locked_at >
+			self::LOCK_TIMEOUT
+		) {
+			delete_option(
+				self::LOCK_OPTION
+			);
+
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Attempt to acquire the migration lock.
+	 *
+	 * Function add_option() is used so creation of the lock is atomic at the
+	 * database level. If another request creates the option first, this request
+	 * cannot acquire the lock.
+	 *
+	 * @return bool True when the migration lock was acquired.
+	 */
+	public function acquire_lock(): bool {
+
+		if ( $this->is_locked() ) {
+			return false;
+		}
+
+		return add_option(
+			self::LOCK_OPTION,
+			time(),
+			'',
+			false
+		);
+	}
+
+	/**
+	 * Release the migration lock.
+	 *
+	 * @return void
+	 */
+	public function release_lock(): void {
+
+		delete_option(
+			self::LOCK_OPTION
+		);
 	}
 
 	/**

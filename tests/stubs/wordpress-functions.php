@@ -1311,3 +1311,76 @@ if ( ! function_exists( 'absint' ) ) {
 		);
 	}
 }
+
+if ( ! function_exists( 'add_option' ) ) {
+
+	/**
+	 * Add a test WordPress option.
+	 *
+	 * Test replacement for add_option(). Returns false when the option
+	 * already exists, matching the behavior required for migration locking.
+	 *
+	 * @param string $option     Option name.
+	 * @param mixed  $value      Option value.
+	 * @param string $deprecated Deprecated argument.
+	 * @param bool   $autoload   Whether to autoload the option.
+	 * @return bool
+	 */
+	function add_option(
+		string $option,
+		mixed $value = '',
+		string $deprecated = '',
+		bool $autoload = true
+	): bool {
+
+		unset(
+			$deprecated,
+			$autoload
+		);
+
+		if (
+			array_key_exists(
+				$option,
+				$GLOBALS['shurloc_test_options']
+			)
+		) {
+			return false;
+		}
+
+		$GLOBALS['shurloc_test_options'][ $option ] =
+			$value;
+
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+
+	/**
+	 * Delete a test WordPress option.
+	 *
+	 * Test replacement for delete_option().
+	 *
+	 * @param string $option Option name.
+	 * @return bool
+	 */
+	function delete_option(
+		string $option
+	): bool {
+
+		if (
+			! array_key_exists(
+				$option,
+				$GLOBALS['shurloc_test_options']
+			)
+		) {
+			return false;
+		}
+
+		unset(
+			$GLOBALS['shurloc_test_options'][ $option ]
+		);
+
+		return true;
+	}
+}

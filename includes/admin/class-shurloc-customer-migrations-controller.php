@@ -38,6 +38,12 @@ final class Shurloc_Customer_Migrations_Controller {
 		'shurloc_run_purchase_migration';
 
 	/**
+	 * Purchase migration result nonce action.
+	 */
+	private const PURCHASE_RESULT_NONCE_ACTION =
+		'shurloc_purchase_migration_result';
+
+	/**
 	 * Purchase migration.
 	 *
 	 * @var Shurloc_User_Purchase_Migration
@@ -90,6 +96,14 @@ final class Shurloc_Customer_Migrations_Controller {
 		if ( ! $this->is_migrations_page() ) {
 			return;
 		}
+
+		wp_enqueue_style(
+			'shurloc-customer-migrations',
+			SHURLOC_CUSTOMER_TOOLS_URL .
+				'assets/css/customer-migrations.css',
+			array(),
+			SHURLOC_CUSTOMER_TOOLS_VERSION
+		);
 
 		wp_enqueue_script(
 			'shurloc-customer-migrations',
@@ -220,21 +234,59 @@ final class Shurloc_Customer_Migrations_Controller {
 				</p>
 			</form>
 		</div>
+
+		<div
+			class="shurloc-migration-overlay"
+			hidden
+		>
+			<div
+				class="shurloc-migration-dialog"
+				role="status"
+				aria-live="polite"
+			>
+				<span
+					class="spinner is-active"
+					aria-hidden="true"
+				></span>
+
+				<strong>
+					Migration is running…
+				</strong>
+
+				<p>
+					Please keep this page open until the migration completes.
+				</p>
+			</div>
+		</div>
 		<?php
 	}
 
 	/**
 	 * Run the purchase migration and build its result URL.
 	 *
+	 * A migration lock is acquired before execution. If another request is
+	 * already running the migration, no second migration is started.
+	 *
 	 * @return string Redirect URL.
 	 */
 	public function run_purchase_migration(): string {
 
-		$result = $this->purchase_migration->run();
+		if ( ! $this->purchase_migration->acquire_lock() ) {
+			return $this->get_purchase_migration_locked_redirect_url();
+		}
 
-		return $this->get_purchase_migration_redirect_url(
-			result: $result,
-		);
+		try {
+
+			$result = $this->purchase_migration->run();
+
+			return $this->get_purchase_migration_redirect_url(
+				result: $result,
+			);
+
+		} finally {
+
+			$this->purchase_migration->release_lock();
+		}
 	}
 
 	/**
@@ -286,7 +338,27 @@ final class Shurloc_Customer_Migrations_Controller {
 				'skipped'   => $result['skipped'],
 				'errors'    => $result['errors'],
 				'_wpnonce'  => wp_create_nonce(
-					'shurloc_purchase_migration_result'
+					self::PURCHASE_RESULT_NONCE_ACTION
+				),
+			),
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Build the redirect URL when the purchase migration is already running.
+	 *
+	 * @return string
+	 */
+	private function get_purchase_migration_locked_redirect_url(): string {
+
+		return add_query_arg(
+			array(
+				'page'      => self::PAGE_SLUG,
+				'tab'       => self::TAB_SLUG,
+				'migration' => 'purchase-locked',
+				'_wpnonce'  => wp_create_nonce(
+					self::PURCHASE_RESULT_NONCE_ACTION
 				),
 			),
 			admin_url( 'admin.php' )
@@ -301,10 +373,10 @@ final class Shurloc_Customer_Migrations_Controller {
 	private function render_result_notice(): void {
 
 		if (
-		! isset(
-			$_GET['_wpnonce'],
-			$_GET['migration']
-		)
+			! isset(
+				$_GET['_wpnonce'],
+				$_GET['migration']
+			)
 		) {
 			return;
 		}
@@ -314,10 +386,10 @@ final class Shurloc_Customer_Migrations_Controller {
 		);
 
 		if (
-		! wp_verify_nonce(
-			$nonce,
-			'shurloc_purchase_migration_result'
-		)
+			! wp_verify_nonce(
+				$nonce,
+				self::PURCHASE_RESULT_NONCE_ACTION
+			)
 		) {
 			return;
 		}
@@ -326,46 +398,63 @@ final class Shurloc_Customer_Migrations_Controller {
 			wp_unslash( $_GET['migration'] )
 		);
 
+		if ( 'purchase-locked' === $migration ) {
+			?>
+			<div class="notice notice-warning is-dismissible">
+				<p>
+					<?php
+					echo esc_html__(
+						'Purchase migration is already running. No second migration was started.',
+						'shurloc-customer-tools'
+					);
+					?>
+				</p>
+			</div>
+			<?php
+
+			return;
+		}
+
 		if ( 'purchase' !== $migration ) {
 			return;
 		}
 
 		$examined = isset( $_GET['examined'] )
-		? absint( $_GET['examined'] )
-		: 0;
+			? absint( $_GET['examined'] )
+			: 0;
 
 		$updated = isset( $_GET['updated'] )
-		? absint( $_GET['updated'] )
-		: 0;
+			? absint( $_GET['updated'] )
+			: 0;
 
 		$skipped = isset( $_GET['skipped'] )
-		? absint( $_GET['skipped'] )
-		: 0;
+			? absint( $_GET['skipped'] )
+			: 0;
 
 		$errors = isset( $_GET['errors'] )
-		? absint( $_GET['errors'] )
-		: 0;
+			? absint( $_GET['errors'] )
+			: 0;
 
 		$notice_class = 0 === $errors
-		? 'notice notice-success is-dismissible'
-		: 'notice notice-warning is-dismissible';
+			? 'notice notice-success is-dismissible'
+			: 'notice notice-warning is-dismissible';
 
 		?>
-	<div class="<?php echo esc_attr( $notice_class ); ?>">
-		<p>
-			<?php
-			echo esc_html(
-				sprintf(
-					'Purchase migration complete. Examined: %d; Updated: %d; Skipped: %d; Errors: %d.',
-					$examined,
-					$updated,
-					$skipped,
-					$errors
-				)
-			);
-			?>
-		</p>
-	</div>
+		<div class="<?php echo esc_attr( $notice_class ); ?>">
+			<p>
+				<?php
+				echo esc_html(
+					sprintf(
+						'Purchase migration complete. Examined: %d; Updated: %d; Skipped: %d; Errors: %d.',
+						$examined,
+						$updated,
+						$skipped,
+						$errors
+					)
+				);
+				?>
+			</p>
+		</div>
 		<?php
 	}
 
@@ -376,18 +465,18 @@ final class Shurloc_Customer_Migrations_Controller {
 	 */
 	private function is_migrations_page(): bool {
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$page = isset( $_GET['page'] )
 			? sanitize_key(
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				wp_unslash( $_GET['page'] )
 			)
 			: '';
 
-        // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$tab = isset( $_GET['tab'] )
 			? sanitize_key(
-                // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 				wp_unslash( $_GET['tab'] )
 			)
 			: '';

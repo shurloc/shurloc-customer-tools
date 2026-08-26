@@ -12,6 +12,10 @@ document.addEventListener( 'DOMContentLoaded', () => {
 				'.shurloc-migration-submit'
 			);
 
+			const overlay = document.querySelector(
+				'.shurloc-migration-overlay'
+			);
+
 			if ( ! checkbox || ! button ) {
 				return;
 			}
@@ -32,9 +36,21 @@ document.addEventListener( 'DOMContentLoaded', () => {
 					'Run this migration?';
 
 				if ( ! window.confirm( message ) ) {
+
 					event.preventDefault();
+
 					checkbox.checked = false;
 					button.disabled = true;
+
+					return;
+				}
+
+				checkbox.disabled = true;
+				button.disabled = true;
+				button.textContent = 'Migration running…';
+
+				if ( overlay ) {
+					overlay.hidden = false;
 				}
 			} );
 		} );
