@@ -124,6 +124,77 @@ final class Shurloc_User_Cart_Service {
 	}
 
 	/**
+	 * Store a user's normalized cart snapshot.
+	 *
+	 * This method writes the supplied cart snapshot directly and is suitable for
+	 * controlled operations such as migrations and reseeding.
+	 *
+	 * @param int                         $user_id        User ID.
+	 * @param array<int,CartSnapshotItem> $cart_contents Normalized cart contents.
+	 * @param float                       $contents_total Cart contents total.
+	 * @param int                         $updated_at     Snapshot update timestamp.
+	 * @param int                         $expires_at     Snapshot expiration timestamp.
+	 * @return bool True when the snapshot was stored.
+	 */
+	public function store_cart_snapshot(
+		int $user_id,
+		array $cart_contents,
+		float $contents_total,
+		int $updated_at,
+		int $expires_at
+	): bool {
+
+		if (
+			0 >= $user_id ||
+			empty( $cart_contents )
+		) {
+			return false;
+		}
+
+		$item_count = $this->get_item_count(
+			cart_contents: $cart_contents,
+		);
+
+		update_user_meta(
+			$user_id,
+			self::CART_COUNT_META_KEY,
+			$item_count
+		);
+
+		update_user_meta(
+			$user_id,
+			self::CART_TOTAL_META_KEY,
+			$contents_total
+		);
+
+		update_user_meta(
+			$user_id,
+			self::CART_ITEMS_META_KEY,
+			$cart_contents
+		);
+
+		update_user_meta(
+			$user_id,
+			self::CART_UPDATED_META_KEY,
+			$updated_at
+		);
+
+		update_user_meta(
+			$user_id,
+			self::CART_VERSION_META_KEY,
+			self::CART_SNAPSHOT_VERSION
+		);
+
+		update_user_meta(
+			$user_id,
+			self::CART_EXPIRES_META_KEY,
+			$expires_at
+		);
+
+		return true;
+	}
+
+	/**
 	 * Update the current user's cart snapshot.
 	 *
 	 * @param WC_Cart $cart WooCommerce cart.
@@ -153,52 +224,20 @@ final class Shurloc_User_Cart_Service {
 			return;
 		}
 
-		$item_count = $this->get_item_count(
-			cart_contents: $cart_contents,
-		);
-
 		$timestamp = time();
 
 		$expiration_timestamp = $timestamp
-			+ (
-				self::DAY_IN_SECONDS
-				* self::CART_EXPIRATION_DAYS
-			);
-
-		update_user_meta(
-			$user_id,
-			self::CART_COUNT_META_KEY,
-			$item_count
+		+ (
+			self::DAY_IN_SECONDS
+			* self::CART_EXPIRATION_DAYS
 		);
 
-		update_user_meta(
-			$user_id,
-			self::CART_TOTAL_META_KEY,
-			(float) $cart->get_cart_contents_total()
-		);
-
-		update_user_meta(
-			$user_id,
-			self::CART_ITEMS_META_KEY,
-			$cart_contents
-		);
-
-		update_user_meta(
-			$user_id,
-			self::CART_UPDATED_META_KEY,
-			$timestamp
-		);
-
-		update_user_meta(
-			$user_id,
-			self::CART_VERSION_META_KEY,
-			self::CART_SNAPSHOT_VERSION
-		);
-
-		update_user_meta(
-			$user_id,
-			self::CART_EXPIRES_META_KEY,
-			$expiration_timestamp
+		$this->store_cart_snapshot(
+			user_id: $user_id,
+			cart_contents: $cart_contents,
+			contents_total: (float) $cart->get_cart_contents_total(),
+			updated_at: $timestamp,
+			expires_at: $expiration_timestamp,
 		);
 	}
 
