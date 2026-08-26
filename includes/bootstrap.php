@@ -38,23 +38,7 @@ function shurloc_customer_tools_bootstrap(): void {
 	$relative_time_formatter = new Shurloc_Relative_Time_Formatter();
 
 	/**
-	 * Admin page.
-	 */
-
-	/** Intelephense false positive.
-	 *
-	 * @disregard P1009 Undefined type 'Shurloc\Tools\Shurloc_Admin_Page_Interface'. */
-	if ( interface_exists( Shurloc_Admin_Page_Interface::class ) ) {
-		$customer_page = new Shurloc_Admin_Page_Controller();
-
-		$admin_page = new Shurloc_Admin_Menu(
-			customer_page: $customer_page,
-		);
-		$admin_page->register();
-	}
-
-	/**
-	 * User activity and purchase tracking.
+	 * User activity, purchase, and cart services.
 	 */
 
 	$user_activity_service = new Shurloc_User_Activity_Service();
@@ -65,6 +49,37 @@ function shurloc_customer_tools_bootstrap(): void {
 
 	$user_cart_service = new Shurloc_User_Cart_Service();
 	$user_cart_service->register();
+
+	/**
+	 * Customer data migrations.
+	 */
+
+	$user_purchase_migration =
+		new Shurloc_User_Purchase_Migration(
+			purchase_service: $user_purchase_service,
+		);
+
+	$migrations_controller =
+		new Shurloc_Customer_Migrations_Controller(
+			purchase_migration: $user_purchase_migration,
+		);
+	$migrations_controller->register();
+
+	/**
+	 * Admin page.
+	 */
+
+	/* @disregard P1009 Undefined type 'Shurloc\Tools\Shurloc_Admin_Page_Interface'. */
+	if ( interface_exists( Shurloc_Admin_Page_Interface::class ) ) {
+		$customer_page = new Shurloc_Admin_Page_Controller(
+			migrations_controller: $migrations_controller,
+		);
+
+		$admin_page = new Shurloc_Admin_Menu(
+			customer_page: $customer_page,
+		);
+		$admin_page->register();
+	}
 
 	$user_activity_columns = new Shurloc_User_Activity_Columns(
 		time_formatter: $relative_time_formatter,
