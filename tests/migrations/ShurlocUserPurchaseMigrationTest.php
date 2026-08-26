@@ -373,6 +373,129 @@ final class ShurlocUserPurchaseMigrationTest extends TestCase {
 	}
 
 	/**
+	 * Verify the migration reports an active lock.
+	 *
+	 * @return void
+	 */
+	public function test_is_locked_returns_true_for_active_lock(): void {
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Purchase_Migration::LOCK_OPTION ] = time();
+
+		self::assertTrue(
+			$this->migration->is_locked()
+		);
+	}
+
+	/**
+	 * Verify the migration reports no lock when none exists.
+	 *
+	 * @return void
+	 */
+	public function test_is_locked_returns_false_when_no_lock_exists(): void {
+
+		self::assertFalse(
+			$this->migration->is_locked()
+		);
+	}
+
+	/**
+	 * Verify a stale migration lock is removed.
+	 *
+	 * @return void
+	 */
+	public function test_is_locked_removes_stale_lock(): void {
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Purchase_Migration::LOCK_OPTION ] = time() - 901;
+
+		self::assertFalse(
+			$this->migration->is_locked()
+		);
+
+		self::assertArrayNotHasKey(
+			Shurloc_User_Purchase_Migration::LOCK_OPTION,
+			$GLOBALS['shurloc_test_options']
+		);
+	}
+
+	/**
+	 * Verify the migration lock can be acquired.
+	 *
+	 * @return void
+	 */
+	public function test_acquire_lock_creates_lock(): void {
+
+		$result = $this->migration->acquire_lock();
+
+		self::assertTrue(
+			$result
+		);
+
+		self::assertArrayHasKey(
+			Shurloc_User_Purchase_Migration::LOCK_OPTION,
+			$GLOBALS['shurloc_test_options']
+		);
+	}
+
+	/**
+	 * Verify an existing migration lock cannot be acquired again.
+	 *
+	 * @return void
+	 */
+	public function test_acquire_lock_returns_false_when_already_locked(): void {
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Purchase_Migration::LOCK_OPTION ] = time();
+
+		$result = $this->migration->acquire_lock();
+
+		self::assertFalse(
+			$result
+		);
+	}
+
+	/**
+	 * Verify the migration lock can be released.
+	 *
+	 * @return void
+	 */
+	public function test_release_lock_removes_lock(): void {
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Purchase_Migration::LOCK_OPTION ] = time();
+
+		$this->migration->release_lock();
+
+		self::assertArrayNotHasKey(
+			Shurloc_User_Purchase_Migration::LOCK_OPTION,
+			$GLOBALS['shurloc_test_options']
+		);
+	}
+
+	/**
+	 * Verify a stale migration lock can be reacquired.
+	 *
+	 * @return void
+	 */
+	public function test_acquire_lock_replaces_stale_lock(): void {
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Purchase_Migration::LOCK_OPTION ] = time() - 901;
+
+		$result = $this->migration->acquire_lock();
+
+		self::assertTrue(
+			$result
+		);
+
+		self::assertArrayHasKey(
+			Shurloc_User_Purchase_Migration::LOCK_OPTION,
+			$GLOBALS['shurloc_test_options']
+		);
+	}
+
+	/**
 	 * Create a WooCommerce order test double.
 	 *
 	 * @param int    $order_id  Order ID.

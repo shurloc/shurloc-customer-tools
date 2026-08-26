@@ -503,6 +503,118 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 	}
 
 	/**
+	 * Verify a locked migration is not executed a second time.
+	 *
+	 * @return void
+	 */
+	public function test_run_purchase_migration_does_not_run_when_locked(): void {
+
+		$GLOBALS['shurloc_test_users'] = array(
+			101,
+		);
+
+		$GLOBALS['shurloc_test_orders'][101] = array(
+			$this->create_order(
+				order_id: 200,
+				user_id: 101,
+				status: 'completed',
+				timestamp: 1_000_000,
+				total: 125.50,
+			),
+		);
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Purchase_Migration::LOCK_OPTION ] = time();
+
+		$redirect_url =
+		$this->controller->run_purchase_migration();
+
+		self::assertSame(
+			array(),
+			$GLOBALS['shurloc_test_user_meta']
+		);
+
+		self::assertStringContainsString(
+			'migration=purchase-locked',
+			$redirect_url
+		);
+	}
+
+	/**
+	 * Verify a completed purchase migration releases its lock.
+	 *
+	 * @return void
+	 */
+	public function test_run_purchase_migration_releases_lock_after_completion(): void {
+
+		$GLOBALS['shurloc_test_users'] = array();
+
+		$this->controller->run_purchase_migration();
+
+		self::assertArrayNotHasKey(
+			Shurloc_User_Purchase_Migration::LOCK_OPTION,
+			$GLOBALS['shurloc_test_options']
+		);
+	}
+
+	/**
+	 * Verify a locked purchase migration displays a warning notice.
+	 *
+	 * @return void
+	 */
+	public function test_render_displays_purchase_migration_locked_notice(): void {
+
+		$_GET['migration'] = 'purchase-locked';
+		$_GET['_wpnonce']  =
+		'test-nonce-shurloc_purchase_migration_result';
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString(
+			'Purchase migration is already running.',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'No second migration was started.',
+			$output
+		);
+	}
+
+	/**
+	 * Verify the migrations page renders the running overlay.
+	 *
+	 * @return void
+	 */
+	public function test_render_shows_migration_running_overlay(): void {
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString(
+			'shurloc-migration-overlay',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Migration is running',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Please keep this page open until the migration completes.',
+			$output
+		);
+	}
+
+	/**
 	 * Create a WooCommerce order test double.
 	 *
 	 * @param int    $order_id  Order ID.
