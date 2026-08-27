@@ -1,8 +1,41 @@
 # Changelog
 
+## [0.8.0] - 2026-08-26
+
+### Added
+
+- Added a cart tracking migration for seeding existing customer cart data from stored WooCommerce sessions.
+- Added migration support for cart item quantities, totals, product details, variation attributes, update timestamps, and expiration timestamps.
+- Added Cart Tracking Seeding controls to the Customer Data Migrations admin page.
+- Added migration locking to prevent multiple cart migrations from running at the same time.
+- Added migration progress feedback with disabled controls, a loading overlay, and completion results.
+- Added PHPUnit coverage for cart migration processing, locking, admin controls, redirects, result notices, and nonce handling.
+
+### Changed
+
+- Extended the Customer Data Migrations page to support both purchase and cart tracking migrations.
+- Updated cart tracking services to support storing normalized cart snapshots from migration data.
+- Improved migration error handling so programming errors are not silently treated as individual migration failures.
+- Refactored shared migration admin presentation and result handling for multiple migration types.
+
+### Internal Improvements
+
+- Added WooCommerce session database test coverage using a dedicated WordPress database test double.
+- Added test support for stored WooCommerce sessions and cart migration data.
+- Kept cart migration, cart tracking, and admin presentation responsibilities separated into focused classes.
+
+### Testing
+
+- Added PHPUnit coverage for existing WooCommerce cart session migration.
+- Added coverage for valid, invalid, missing-user, variation, total fallback, and locking scenarios.
+- Added controller coverage for cart migration registration, execution, locking, UI, redirects, and result notices.
+- Verified cart migration behavior on staging.
+- Verified PHPUnit, PHPCS, and PHPStan checks pass.
+
 ## [0.7.0] - 2026-08-26
 
 ### Added
+
 - Added a dedicated **Migrations** tab to the Shur-loc Customer Tools admin page.
 - Added a controlled purchase-tracking migration for reseeding existing users from their most recent qualifying WooCommerce order.
 - Added migration status information showing the current version, last-run version, and last-run date.
@@ -14,12 +47,14 @@
 - Added a warning when another purchase migration is already running.
 
 ### Changed
+
 - Extended the purchase tracking service to support purchase data migrations.
 - Moved the existing purchase-seeding functionality from Code Snippets into the Shur-loc Customer Tools plugin.
 - Made purchase seeding safely rerunnable instead of treating it as a one-time operation.
 - Expanded the Customer Tools admin page with separate **Overview** and **Migrations** tabs.
 
 ### Internal Improvements
+
 - Added dedicated migration and migration administration classes.
 - Reused the existing purchase tracking service so live tracking and migration processing share the same purchase data logic.
 - Added migration version and last-run tracking.
@@ -27,6 +62,7 @@
 - Added supporting WordPress test doubles for migration administration and locking.
 
 ### Testing
+
 - Added PHPUnit coverage for purchase migration execution and administration.
 - Added coverage for migration locking, stale-lock recovery, and duplicate-run prevention.
 - Added coverage for migration controls, result notices, progress feedback, and admin tab routing.
