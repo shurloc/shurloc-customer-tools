@@ -59,9 +59,15 @@ function shurloc_customer_tools_bootstrap(): void {
 			purchase_service: $user_purchase_service,
 		);
 
+	$user_cart_migration =
+		new Shurloc_User_Cart_Migration(
+			cart_service: $user_cart_service,
+		);
+
 	$migrations_controller =
 		new Shurloc_Customer_Migrations_Controller(
 			purchase_migration: $user_purchase_migration,
+			cart_migration: $user_cart_migration,
 		);
 	$migrations_controller->register();
 

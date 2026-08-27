@@ -45,6 +45,7 @@ final class ShurlocUserPurchaseMigrationTest extends TestCase {
 		$GLOBALS['shurloc_test_user_meta']          = array();
 		$GLOBALS['shurloc_test_options']            = array();
 		$GLOBALS['shurloc_test_wc_get_orders_args'] = array();
+		$GLOBALS['shurloc_test_time']               = 1_000_000;
 
 		$this->purchase_service =
 			new Shurloc_User_Purchase_Service();
@@ -67,6 +68,7 @@ final class ShurlocUserPurchaseMigrationTest extends TestCase {
 		$GLOBALS['shurloc_test_user_meta']          = array();
 		$GLOBALS['shurloc_test_options']            = array();
 		$GLOBALS['shurloc_test_wc_get_orders_args'] = array();
+		$GLOBALS['shurloc_test_time']               = 0;
 
 		parent::tearDown();
 	}

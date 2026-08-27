@@ -12,18 +12,13 @@ namespace Shurloc\CustomerTools;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use WC_Order;
+use WC_Product;
+use Shurloc_Test_WPDB;
 
 /**
  * Tests the customer migrations admin controller.
  */
 final class ShurlocCustomerMigrationsControllerTest extends TestCase {
-
-	/**
-	 * Migration.
-	 *
-	 * @var Shurloc_User_Purchase_Migration
-	 */
-	private Shurloc_User_Purchase_Migration $migration;
 
 	/**
 	 * Controller under test.
@@ -56,18 +51,30 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 		$GLOBALS['shurloc_test_redirects']            = array();
 		$GLOBALS['shurloc_test_wp_die_messages']      = array();
 		$GLOBALS['shurloc_test_wc_get_orders_args']   = array();
+		$GLOBALS['shurloc_test_products']             = array();
+		$GLOBALS['shurloc_test_time']                 = 1_000_000;
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Reset test-only wpdb replacement.
+		$GLOBALS['wpdb'] = new Shurloc_Test_WPDB();
 
 		$_GET = array();
 
-		$service = new Shurloc_User_Purchase_Service();
+		$purchase_service = new Shurloc_User_Purchase_Service();
 
-		$this->migration = new Shurloc_User_Purchase_Migration(
-			$service
+		$cart_service = new Shurloc_User_Cart_Service();
+
+		$purchase_migration = new Shurloc_User_Purchase_Migration(
+			purchase_service: $purchase_service,
+		);
+
+		$cart_migration = new Shurloc_User_Cart_Migration(
+			cart_service: $cart_service,
 		);
 
 		$this->controller =
 			new Shurloc_Customer_Migrations_Controller(
-				$this->migration
+				purchase_migration: $purchase_migration,
+				cart_migration: $cart_migration,
 			);
 	}
 
@@ -93,6 +100,11 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 		$GLOBALS['shurloc_test_redirects']            = array();
 		$GLOBALS['shurloc_test_wp_die_messages']      = array();
 		$GLOBALS['shurloc_test_wc_get_orders_args']   = array();
+		$GLOBALS['shurloc_test_products']             = array();
+		$GLOBALS['shurloc_test_time']                 = 1_000_000;
+
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Reset test-only wpdb replacement.
+		$GLOBALS['wpdb'] = new Shurloc_Test_WPDB();
 
 		$_GET = array();
 
@@ -207,7 +219,7 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 		);
 
 		self::assertCount(
-			1,
+			2,
 			$GLOBALS['shurloc_test_nonce_fields']
 		);
 
@@ -615,6 +627,326 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 	}
 
 	/**
+	 * Verify controller registration includes the cart migration action.
+	 *
+	 * @return void
+	 */
+	public function test_register_adds_cart_migration_action(): void {
+
+		$this->controller->register();
+
+		self::assertContains(
+			array(
+				$this->controller,
+				'handle_cart_migration',
+			),
+			$GLOBALS['shurloc_test_actions']
+			['admin_post_shurloc_run_cart_migration']
+		);
+	}
+
+	/**
+	 * Verify the migrations page renders the cart migration controls.
+	 *
+	 * @return void
+	 */
+	public function test_render_shows_cart_migration_controls(): void {
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString(
+			'Cart Tracking Seeding',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Run Cart Migration',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'shurloc_run_cart_migration',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'stored WooCommerce sessions',
+			$output
+		);
+	}
+
+	/**
+	 * Verify the migrations page displays the cart last-run migration version.
+	 *
+	 * @return void
+	 */
+	public function test_render_shows_cart_last_run_version(): void {
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Cart_Migration::LAST_RUN_VERSION_OPTION ] = 1;
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertMatchesRegularExpression(
+			'/Cart Tracking Seeding.*?Last-run migration version<\/th>\s*<td>\s*1\s*<\/td>/s',
+			$output
+		);
+	}
+
+	/**
+	 * Verify running the cart migration seeds cart data.
+	 *
+	 * @return void
+	 */
+	public function test_run_cart_migration_seeds_cart_data(): void {
+
+		$GLOBALS['wpdb']->results = array(
+			(object) array(
+				'session_key'    => '101',
+				'session_value'  => serialize( // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Test fixture mirrors WooCommerce session storage.
+					array(
+						'cart' => serialize( // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Test fixture mirrors WooCommerce session storage.
+							array(
+								'abc123' => array(
+									'product_id'    => 200,
+									'variation_id'  => 0,
+									'quantity'      => 2,
+									'line_subtotal' => 100.00,
+									'line_total'    => 90.00,
+								),
+							)
+						),
+					)
+				),
+				'session_expiry' => 2_000_000,
+			),
+		);
+
+		$GLOBALS['shurloc_test_users'][101] = true;
+
+		$GLOBALS['shurloc_test_products'][200] =
+		$this->create_product(
+			product_id: 200,
+			name: 'Test Product',
+			sku: 'TEST-200',
+		);
+
+		$this->controller->run_cart_migration();
+
+		self::assertSame(
+			2,
+			$GLOBALS['shurloc_test_user_meta'][101]
+			[ Shurloc_User_Cart_Service::CART_COUNT_META_KEY ]
+		);
+	}
+
+	/**
+	 * Verify running the cart migration returns the expected result URL.
+	 *
+	 * @return void
+	 */
+	public function test_run_cart_migration_returns_result_url(): void {
+
+		$GLOBALS['wpdb']->results = array();
+
+		$redirect_url =
+		$this->controller->run_cart_migration();
+
+		self::assertStringContainsString(
+			'page=shurloc-customer-tools',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'tab=migrations',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'migration=cart',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'examined=0',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'updated=0',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'skipped=0',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'errors=0',
+			$redirect_url
+		);
+
+		self::assertStringContainsString(
+			'_wpnonce=test-nonce-shurloc_cart_migration_result',
+			$redirect_url
+		);
+	}
+
+	/**
+	 * Verify a locked cart migration is not executed a second time.
+	 *
+	 * @return void
+	 */
+	public function test_run_cart_migration_does_not_run_when_locked(): void {
+
+		$GLOBALS['shurloc_test_time'] = 1_000_000;
+
+		$GLOBALS['shurloc_test_options']
+		[ Shurloc_User_Cart_Migration::LOCK_OPTION ] = 1_000_000;
+
+		$redirect_url =
+		$this->controller->run_cart_migration();
+
+		self::assertStringContainsString(
+			'migration=cart-locked',
+			$redirect_url
+		);
+
+		self::assertSame(
+			array(),
+			$GLOBALS['shurloc_test_user_meta']
+		);
+	}
+
+	/**
+	 * Verify a completed cart migration releases its lock.
+	 *
+	 * @return void
+	 */
+	public function test_run_cart_migration_releases_lock_after_completion(): void {
+
+		$GLOBALS['wpdb']->results = array();
+
+		$this->controller->run_cart_migration();
+
+		self::assertArrayNotHasKey(
+			Shurloc_User_Cart_Migration::LOCK_OPTION,
+			$GLOBALS['shurloc_test_options']
+		);
+	}
+
+	/**
+	 * Verify a valid cart migration result displays the completion notice.
+	 *
+	 * @return void
+	 */
+	public function test_render_displays_valid_cart_migration_result(): void {
+
+		$_GET['migration'] = 'cart';
+		$_GET['examined']  = '10';
+		$_GET['updated']   = '7';
+		$_GET['skipped']   = '3';
+		$_GET['errors']    = '0';
+		$_GET['_wpnonce']  =
+		'test-nonce-shurloc_cart_migration_result';
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString(
+			'Cart migration complete.',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Examined: 10',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Updated: 7',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Skipped: 3',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'Errors: 0',
+			$output
+		);
+	}
+
+	/**
+	 * Verify a locked cart migration displays a warning notice.
+	 *
+	 * @return void
+	 */
+	public function test_render_displays_cart_migration_locked_notice(): void {
+
+		$_GET['migration'] = 'cart-locked';
+		$_GET['_wpnonce']  =
+		'test-nonce-shurloc_cart_migration_result';
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertStringContainsString(
+			'Cart migration is already running.',
+			$output
+		);
+
+		self::assertStringContainsString(
+			'No second migration was started.',
+			$output
+		);
+	}
+
+	/**
+	 * Verify a purchase result nonce cannot authorize a cart result.
+	 *
+	 * @return void
+	 */
+	public function test_render_rejects_cart_result_with_purchase_nonce(): void {
+
+		$_GET['migration'] = 'cart';
+		$_GET['examined']  = '10';
+		$_GET['updated']   = '7';
+		$_GET['skipped']   = '3';
+		$_GET['errors']    = '0';
+		$_GET['_wpnonce']  =
+		'test-nonce-shurloc_purchase_migration_result';
+
+		ob_start();
+
+		$this->controller->render();
+
+		$output = (string) ob_get_clean();
+
+		self::assertStringNotContainsString(
+			'Cart migration complete.',
+			$output
+		);
+	}
+
+	/**
 	 * Create a WooCommerce order test double.
 	 *
 	 * @param int    $order_id  Order ID.
@@ -640,5 +972,27 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 		$order->set_total( (string) $total );
 
 		return $order;
+	}
+
+	/**
+	 * Create a WooCommerce product test double.
+	 *
+	 * @param int    $product_id Product ID.
+	 * @param string $name       Product name.
+	 * @param string $sku        Product SKU.
+	 * @return WC_Product
+	 */
+	private function create_product(
+		int $product_id,
+		string $name,
+		string $sku
+	): WC_Product {
+
+		$product = new WC_Product( $product_id );
+
+		$product->set_name( $name );
+		$product->set_sku( $sku );
+
+		return $product;
 	}
 }
