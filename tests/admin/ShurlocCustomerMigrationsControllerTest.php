@@ -207,7 +207,7 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 		);
 
 		self::assertCount(
-			1,
+			2,
 			$GLOBALS['shurloc_test_nonce_fields']
 		);
 
