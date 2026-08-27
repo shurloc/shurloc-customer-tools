@@ -19,13 +19,6 @@ use WC_Order;
 final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 
 	/**
-	 * Migration.
-	 *
-	 * @var Shurloc_User_Purchase_Migration
-	 */
-	private Shurloc_User_Purchase_Migration $migration;
-
-	/**
 	 * Controller under test.
 	 *
 	 * @var Shurloc_Customer_Migrations_Controller
@@ -59,15 +52,22 @@ final class ShurlocCustomerMigrationsControllerTest extends TestCase {
 
 		$_GET = array();
 
-		$service = new Shurloc_User_Purchase_Service();
+		$purchase_service = new Shurloc_User_Purchase_Service();
 
-		$this->migration = new Shurloc_User_Purchase_Migration(
-			$service
+		$cart_service = new Shurloc_User_Cart_Service();
+
+		$purchase_migration = new Shurloc_User_Purchase_Migration(
+			purchase_service: $purchase_service,
+		);
+
+		$cart_migration = new Shurloc_User_Cart_Migration(
+			cart_service: $cart_service,
 		);
 
 		$this->controller =
 			new Shurloc_Customer_Migrations_Controller(
-				$this->migration
+				purchase_migration: $purchase_migration,
+				cart_migration: $cart_migration,
 			);
 	}
 

@@ -40,14 +40,23 @@ final class ShurlocAdminPageControllerTest extends TestCase {
 		$purchase_service =
 			new Shurloc_User_Purchase_Service();
 
+		$cart_serivce =
+			new Shurloc_User_Cart_Service();
+
 		$purchase_migration =
 			new Shurloc_User_Purchase_Migration(
 				purchase_service: $purchase_service,
 			);
 
+		$cart_migration =
+			new Shurloc_User_Cart_Migration(
+				cart_service: $cart_serivce,
+			);
+
 		$migrations_controller =
 			new Shurloc_Customer_Migrations_Controller(
 				purchase_migration: $purchase_migration,
+				cart_migration: $cart_migration,
 			);
 
 		$this->controller =
