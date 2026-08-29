@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1] - 2026-08-29
+
+### Internal Improvements
+
+- Updated both build scripts to derive project name from script directory instead of hard coding it
+- Improved required file detection logic
+
 ## [0.8.0] - 2026-08-26
 
 ### Added
