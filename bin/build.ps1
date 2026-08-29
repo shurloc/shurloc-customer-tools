@@ -8,14 +8,10 @@
 # Verify the version using:
 #   Get-Module -Name Microsoft.PowerShell.Archive -ListAvailable | Select-Object Name, Version
 
-
-param(
-    [string]$PluginName = "shurloc-customer-tools"
-)
-
 $ErrorActionPreference = "Stop"
 
 $ProjectRoot = (Resolve-Path "$PSScriptRoot\..").Path
+$PluginName  = Split-Path $ProjectRoot -Leaf
 
 $BuildRoot  = Join-Path $ProjectRoot "build\dist"
 $PluginRoot = Join-Path $BuildRoot $PluginName
@@ -105,11 +101,14 @@ if ($LASTEXITCODE -gt 7) {
 #
 # Verify required plugin files.
 #
-if (-not (Test-Path "$PluginRoot\shurloc-customer-tools.php")) {
-    throw "Plugin bootstrap file 'shurloc-customer-tools.php' was not copied."
+$PluginBootstrapFile = "$PluginName.php"
+$PluginBootstrapPath = Join-Path $PluginRoot $PluginBootstrapFile
+
+if (-not (Test-Path $PluginBootstrapPath)) {
+    throw "Plugin bootstrap file '$PluginBootstrapFile' was not copied."
 }
 
-if (-not (Test-Path "$PluginRoot\includes")) {
+if (-not (Test-Path (Join-Path $PluginRoot "includes"))) {
     throw "The 'includes' directory was not copied."
 }
 

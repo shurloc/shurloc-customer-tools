@@ -4,9 +4,8 @@ import shutil
 import zipfile
 from pathlib import Path
 
-plugin_name = 'shurloc-customer-tools'
-
-project_root = Path.cwd()
+project_root = Path(__file__).resolve().parent.parent
+plugin_name = project_root.name
 
 build_root = project_root / 'build/dist'
 plugin_root = build_root / plugin_name
@@ -78,17 +77,20 @@ while len(file_stack) > 0:
 #
 # Verify required plugin files.
 #
-if not Path(plugin_root / f'{plugin_name}.php').exists():
-    raise RuntimeError(f"Plugin bootstrap file '{plugin_name}.php' was not copied.")
+plugin_bootstrap_file = f'{plugin_name}.php'
+plugin_bootstrap_path = plugin_root / plugin_bootstrap_file
 
-if not Path(plugin_root / 'includes').exists():
+if not plugin_bootstrap_path.exists():
+    raise RuntimeError(f"Plugin bootstrap file '{plugin_bootstrap_file}' was not copied.")
+
+if not (plugin_root / 'includes').exists():
     raise RuntimeError("The 'includes' directory was not copied.")
 
 #
 # Remove any previous ZIP.
 #
-if Path(zip_file).exists():
-    Path(zip_file).unlink()
+if zip_file.exists():
+    zip_file.unlink()
 
 #
 # Create ZIP archive.
